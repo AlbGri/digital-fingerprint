@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="it">
+<!--
+  File: index.html
+  Author: AlbGri
+  Copyright: (c) 2025 Alberto G. - Licensed under AGPL-3.0
+  Created: 2025-10-26
+  Description: Demo didattica di browser fingerprinting
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Profilo di visibilita' "solo col link": l'unica misura che vale anche su github.io -->
+    <meta name="robots" content="noindex">
+
+    <meta name="referrer" content="no-referrer">
+
+    <!-- Content Security Policy (CSP) -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self';
+        connect-src 'self'
+            https://api.ipify.org
+            https://api64.ipify.org
+            https://stun.l.google.com:19302
+            https://stun1.l.google.com:19302
+            https://nominatim.openstreetmap.org;
+        style-src 'self';
+        img-src 'self' data:;
+        frame-src 'none';
+        font-src 'self';
+        base-uri 'self';
+        upgrade-insecure-requests
+    ">
+
+    <title>Digital Fingerprint</title>
+    <meta name="description" content="Cosa sa di te una pagina web appena la apri, senza cookie">
+
+    <link rel="license" href="https://www.gnu.org/licenses/agpl-3.0.html">
+
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Script in ordine; fingerprint-audio.js lo carica il viewer -->
+    <script src="js/logger.js" defer></script>
+    <script src="js/fingerprint-utils.js" defer></script>
+    <script src="js/fingerprint-extra.js" defer></script>
+    <script src="js/fingerprint-viewer.js" defer></script>
+    <script src="js/fingerprint-permissions.js" defer></script>
+</head>
+<body>
+    <!-- Skip link per accessibilita WCAG 2.1 -->
+    <a href="#fingerprint-section" class="skip-link">Vai al contenuto principale</a>
+
+    <div class="form-container">
+        <h1 id="fingerprint-title">Digital Fingerprint</h1>
+
+        <!-- Sezione Digital Fingerprint Base -->
+        <section class="fingerprint-section" id="fingerprint-section">
+            <div id="fp-content" class="fp-content" role="main" aria-live="polite">
+                <p class="fp-loading">Analisi in corso...</p>
+            </div>
+        </section>
+
+        <!-- Pulsante per mostrare/nascondere sezione analisi avanzata -->
+        <div class="permissions-divider">
+            <button 
+                type="button" 
+                id="advanced-permissions-toggle" 
+                class="btn-verde permissions-toggle-button" 
+                aria-expanded="false"
+                aria-controls="advanced-permissions-section">
+                Sezione con richiesta permessi
+            </button>
+        </div>
+
+        <!-- Sezione analisi avanzata con permessi -->
+        <section id="advanced-permissions-section">
+            <h2>Analisi avanzata</h2>
+            <p>Le seguenti analisi richiedono autorizzazioni esplicite. Clicca su ogni card per espandere e richiedere il permesso specifico.</p>
+
+            <!-- Card 1: Geolocalizzazione GPS -->
+            <details class="permission-card">
+                <summary>
+                    Geolocalizzazione
+                </summary>
+                <div>
+                    <p>
+                        Rivela la tua posizione esatta con precisione fino a pochi metri. 
+                        Può essere usata per tracciare i tuoi spostamenti e identificare la tua casa o luogo di lavoro.
+                    </p>
+                    <button 
+                        type="button" 
+                        class="btn-verde" 
+                        data-permission-action="geolocation">
+                        Richiedi Posizione GPS
+                    </button>
+                    <div class="permission-result"></div>
+                </div>
+            </details>
+
+            <!-- Card 2: Dispositivi Multimediali Dettagliati -->
+            <details class="permission-card">
+                <summary>
+                    Dettagli Dispositivi Multimediali
+                </summary>
+                <div>
+                    <p>
+                        Ottiene i nomi esatti di tutte le telecamere, microfoni e altoparlanti collegati al tuo dispositivo.
+                        Rivela modelli hardware specifici che possono essere usati per fingerprinting avanzato.
+                    </p>
+                    <button 
+                        type="button" 
+                        class="btn-verde" 
+                        data-permission-action="media-devices">
+                        Mostra Dispositivi Dettagliati
+                    </button>
+                    <div class="permission-result"></div>
+
+                    <!-- Contenitore miniatura snapshot fotocamera -->
+                    <div class="camera-snapshot-container hidden">
+                        <h5>Snapshot Fotocamera Frontale</h5>
+                        <canvas id="camera-snapshot-canvas"></canvas>
+                    </div>
+                </div>
+            </details>
+
+            <!-- Card 3: Sensori Movimento Live -->
+            <details class="permission-card">
+                <summary>
+                    Sensori Movimento Live
+                </summary>
+                <div>
+                    <p>
+                        Traccia in tempo reale come muovi e orienti il tuo dispositivo.
+                        Può rivelare pattern comportamentali unici come il modo in cui tieni in mano il telefono.
+                    </p>
+                    <button 
+                        type="button" 
+                        class="btn-verde" 
+                        data-permission-action="motion-sensors">
+                        Attiva Sensori Movimento
+                    </button>
+                    <div class="permission-result"></div>
+                </div>
+            </details>
+
+            <!-- Card 4: Screen Capture Demo -->
+            <details class="permission-card">
+                <summary>
+                    Screen Capture Demo
+                </summary>
+                <div>
+                    <p>
+                        Dimostra la possibilita di condividere tutto cio che vedi sullo schermo.
+                        Con questo permesso, un sito puo registrare qualsiasi cosa tu faccia sul tuo computer.
+                    </p>
+                    <button 
+                        type="button" 
+                        class="btn-verde" 
+                        data-permission-action="screen-capture">
+                        Avvia Screen Capture
+                    </button>
+                    <div class="permission-result"></div>
+                </div>
+            </details>
+
+            <!-- Card 5: Lettura appunti -->
+            <details class="permission-card">
+                <summary>
+                    Appunti
+                </summary>
+                <div>
+                    <p>
+                        Legge il testo che hai copiato per ultimo, in qualunque programma.
+                        Può essere un indirizzo, un messaggio privato o una password appena copiata dal gestore delle password.
+                    </p>
+                    <button
+                        type="button"
+                        class="btn-verde"
+                        data-permission-action="clipboard-read">
+                        Leggi gli Appunti
+                    </button>
+                    <div class="permission-result"></div>
+                </div>
+            </details>
+
+            <!-- Warning educativo finale -->
+            <div class="fp-warning" role="alert">
+                <strong>Nota Educativa</strong>
+                Queste demo mostrano le capacita tecniche dei browser moderni. 
+                Siti malintenzionati potrebbero richiedere questi permessi con pretesti falsi.
+                Concedi sempre i permessi solo a siti di cui ti fidi completamente.
+            </div>
+        </section>
+
+    </div>
+
+    <footer role="contentinfo">
+        <p>
+            <a href="https://github.com/AlbGri/digital-fingerprint">Codice su GitHub</a>
+            &middot; Licenza <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a>
+        </p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,616 @@
+/**
+ * File: style.css
+ * Author: AlbGri
+ * Copyright: (c) 2025 Alberto G. - Licensed under AGPL-3.0
+ * Created: 2025-10-22
+ * Description: Stili della pagina, presi da quelli di albgri.com: solo le regole usate
+ */
+
+/* ==================== VARIABILI CSS ==================== */
+:root {
+    /* Palette colori principale con contrasto WCAG AA */
+    --color-primary: #0066cc;
+    --color-text: #212121;
+    --color-text-light: #666666;
+    --color-background: #f5f5f5;
+    --color-border: #dddddd;
+    --color-code-bg: #f4f4f4;
+
+    /* Colori semantici */
+    --color-error: #d32f2f;
+    --color-error-bg: #ffe6e6;
+    --color-button-success: #4CAF50;
+    --color-button-success-hover: #45a049;
+    --color-body-bg: #ffffff;
+    --color-fp-data-border: rgba(0, 0, 0, 0.05);
+
+    /* Dimensioni e spaziature con logical properties */
+    --max-width: 800px;
+    --border-radius: 4px;
+    --border-radius-md: 5px;
+    --border-radius-lg: 8px;
+    --spacing-sm: 10px;
+    --spacing-md: 15px;
+    --spacing-lg: 20px;
+    --spacing-xl: 40px;
+
+    /* Transizioni */
+    --transition-fast: 0.2s ease-in-out;
+
+    /* Focus outline per accessibilita */
+    --focus-outline: 2px solid var(--color-primary);
+    --focus-offset: 2px;
+}
+
+/* ==================== CASCADE LAYERS ==================== */
+/* Organizzazione CSS in layer per specificita controllata */
+
+@layer reset, base, components;
+
+@layer reset {
+    /* Box-sizing universale per calcoli dimensioni piu prevedibili */
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    /* Reset margini e padding */
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+}
+
+@layer base {
+    /* ==================== STILI BASE ==================== */
+    
+    /* Centralizzazione cursor per elementi interattivi */
+    button, .btn-verde {
+        cursor: pointer;
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        max-width: var(--max-width);
+        margin-block: 50px;
+        margin-inline: auto;
+        padding-inline: var(--spacing-lg);
+        line-height: 1.6;
+        color: var(--color-text);
+        background-color: var(--color-body-bg);
+
+        /* Migliora rendering del testo */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        line-height: 1.3;
+        margin-block-start: 1.5em;
+        margin-block-end: 0.5em;
+    }
+
+    h1 {
+        color: var(--color-text);
+        border-block-end: 2px solid var(--color-text);
+        padding-block-end: var(--spacing-sm);
+        margin-block-start: 0;
+        font-size: 2em;
+    }
+
+    /* Focus visibile per accessibilita WCAG 2.1 */
+    a, button, input, textarea, select {
+        &:focus {
+            outline: var(--focus-outline);
+            outline-offset: var(--focus-offset);
+        }
+
+        /* Rimuovi outline per mouse, mantienilo per tastiera */
+        &:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        &:focus-visible {
+            outline: var(--focus-outline);
+            outline-offset: var(--focus-offset);
+        }
+    }
+}
+
+@layer components {
+    /* ==================== ACCESSIBILITA ==================== */
+    
+    /* Skip link per screen reader WCAG 2.1 */
+    .skip-link {
+        position: absolute;
+        inset-block-start: -40px;
+        inset-inline-start: 0;
+        background: var(--color-primary);
+        color: white;
+        padding-block: 8px;
+        padding-inline: 16px;
+        text-decoration: none;
+        z-index: 100;
+        font-weight: bold;
+
+        &:focus {
+            inset-block-start: 0;
+        }
+    }
+
+    /* Bottone verde delle azioni */
+    .btn-verde {
+        background-color: var(--color-button-success);
+        color: white;
+        padding-block: 0.75rem;
+        padding-inline: 2rem;
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        font-weight: 500;
+        transition: background-color var(--transition-fast);
+        min-block-size: 44px;
+        min-inline-size: 44px;
+
+        &:hover {
+            background-color: var(--color-button-success-hover);
+        }
+
+        &:disabled,
+        &[aria-busy="true"] {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+
+    .fingerprint-section {
+        margin-block: var(--spacing-lg);
+    }
+
+    /* Riquadro che contiene la pagina */
+    .form-container {
+        max-inline-size: 600px;
+        margin-block: 2rem;
+        margin-inline: auto;
+        padding: 2rem;
+        background: var(--color-background);
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--color-border);
+
+        h1 {
+            margin-block-start: 0;
+            border-block-end: 0;
+        }
+    }
+
+    /* Classe utility per nascondere elementi */
+    .hidden {
+        display: none;
+    }
+
+    .error {
+        color: var(--color-error);
+        padding: var(--spacing-lg);
+        background-color: var(--color-error-bg);
+        border-radius: var(--border-radius-md);
+        border-inline-start: 4px solid var(--color-error);
+        margin-block: var(--spacing-lg);
+
+        strong {
+            display: block;
+            margin-block-end: var(--spacing-sm);
+            font-size: 1.1em;
+        }
+    }
+
+    /* ==================== FOOTER ==================== */
+    
+    footer {
+        margin-block-start: var(--spacing-xl);
+        padding-block-start: var(--spacing-lg);
+        border-block-start: 1px solid var(--color-border);
+        text-align: center;
+        color: var(--color-text-light);
+        font-size: 0.9em;
+    }
+
+    footer a {
+        color: var(--color-primary);
+    }
+}
+
+/* ==================== FINGERPRINT VIEWER - Privacy Awareness Tool ==================== */
+.fp-content {
+    margin-block-start: 0;
+    padding: var(--spacing-md);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    max-block-size: 600px;
+    overflow-y: auto;
+}
+
+.fp-warning {
+    padding: 12px;
+    margin-block-end: 16px;
+    background: var(--color-error-bg);
+    border-inline-start: 4px solid var(--color-error);
+    border-radius: var(--border-radius);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.fp-warning strong {
+    display: block;
+    margin-block-end: 4px;
+    color: var(--color-error);
+}
+
+/* Elenco dei componenti esclusi dal calcolo: una classe invece dello style inline,
+   che la CSP della pagina (style-src 'self') blocca */
+.fp-invalid-list {
+    margin: 8px 0 0 20px;
+    padding: 0;
+}
+
+.fp-section {
+    margin-block-end: 20px;
+}
+
+.fp-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-block-end: 8px;
+    padding-block-end: 4px;
+    border-block-end: 1px solid var(--color-border);
+}
+
+.fp-data-list {
+    margin: 0;
+    padding: 0;
+}
+
+.fp-data-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 6px;
+    border-block-end: 1px solid var(--color-fp-data-border);
+    font-size: 12px;
+}
+
+.fp-data-item:last-child {
+    border-block-end: none;
+}
+
+.fp-label {
+    font-weight: 600;
+    color: var(--color-text);
+    flex-shrink: 0;
+}
+
+.fp-value {
+    text-align: end;
+    color: var(--color-text-light);
+    margin: 0;
+    word-break: break-word;
+}
+
+.fp-loading,
+.fp-error {
+    text-align: center;
+    padding: 12px;
+    color: var(--color-text-light);
+    font-size: 13px;
+}
+
+.fp-error {
+    color: var(--color-error);
+}
+
+/* ========================================
+   FINGERPRINT - Nuove Tecniche Avanzate
+   ======================================== */
+
+/* Progress bar per analisi pesante */
+.progress-container {
+  width: 100%;
+  background-color: var(--color-border);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  margin-block: var(--spacing-sm);
+}
+
+.progress-bar {
+  height: 24px;
+  background-color: var(--color-button-success);
+  transition: width 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.85em;
+  font-weight: bold;
+}
+
+/* ==================== MEDIA QUERIES (MOBILE-FIRST) ==================== */
+
+/* Tablet e desktop */
+@media (min-width: 768px) {
+    body {
+        padding-inline: var(--spacing-xl);
+        font-size: 17px;
+    }
+
+    .form-container {
+        padding: 2.5rem;
+    }
+
+    h1 {
+        font-size: 2.5em;
+    }
+}
+
+/* Desktop large */
+@media (min-width: 1024px) {
+    body {
+        font-size: 18px;
+    }
+}
+
+/* Mobile piccoli */
+@media (max-width: 480px) {
+    body {
+        padding-inline: var(--spacing-md);
+        margin-block: 30px;
+    }
+
+    h1 {
+        font-size: 1.75em;
+    }
+}
+
+/* Preferenze utente per movimento ridotto WCAG 2.1 */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Modalita scura con contrasti WCAG AA */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-primary: #4da3ff;
+        --color-text: #e0e0e0;
+        --color-text-light: #c0c0c0;
+        --color-background: #1e1e1e;
+        --color-border: #404040;
+        --color-code-bg: #2a2a2a;
+        --color-error-bg: #3d1a1a;
+        --color-error: #ff6b6b;
+        --color-body-bg: #121212;
+        --color-fp-data-border: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* Contrasto elevato per utenti con necessita specifiche */
+@media (prefers-contrast: high) {
+    :root {
+        --color-border: #000000;
+        --focus-outline: 3px solid #000000;
+    }
+
+    body {
+        color: #000000;
+    }
+}
+
+/* ============================================================
+   SEZIONE ANALISI AVANZATA CON PERMESSI
+   ============================================================
+   Stili per la sezione delle card dei permessi nella pagina
+   index.html. Questi stili sostituiscono gli inline
+   styles per rispettare la Content Security Policy (CSP)
+   che vieta 'unsafe-inline' nella direttiva style-src.
+   
+   Autore: AlbGri
+   Data: 2025-10-27
+   ============================================================ */
+
+/* Contenitore principale sezione permessi
+   Nascosto di default, mostrato tramite toggle JavaScript */
+#advanced-permissions-section {
+    display: none;
+    margin-top: 30px;
+}
+
+/* Classe per mostrare la sezione quando attivata da JS
+   Usata da toggleAdvancedSection() in fingerprint-permissions.js */
+#advanced-permissions-section.visible {
+    display: block;
+}
+
+/* Titolo sezione permessi - Allineamento centrale */
+#advanced-permissions-section h2 {
+    text-align: center;
+    color: var(--color-error);
+    margin-bottom: 10px;
+}
+
+/* Paragrafo introduttivo sezione permessi */
+#advanced-permissions-section > p {
+    text-align: center;
+    color: var(--color-text-light);
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+/* Divisore contenente pulsante toggle sezione
+   Centra il pulsante principale "Scopri cosa posso vedere" */
+.permissions-divider {
+    text-align: center;
+    margin: 30px 0;
+}
+
+/* Pulsante principale per mostrare sezione permessi
+   Dimensioni maggiorate per visibilita */
+.permissions-toggle-button {
+    font-size: 1.1em;
+    padding: 15px 30px;
+}
+
+/* Card singola permesso (elemento details)
+   Ogni card rappresenta una feature che richiede autorizzazione */
+.permission-card {
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    background-color: var(--color-background);
+    transition: border-color var(--transition-fast);
+}
+
+/* Effetto hover sulle card per feedback visivo */
+.permission-card:hover {
+    border-color: var(--color-primary);
+}
+
+/* Titolo cliccabile della card (elemento summary)
+   Cliccabile per espandere/collassare il contenuto */
+.permission-card summary {
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.1em;
+    padding: 10px;
+    color: var(--color-text);
+    list-style: none;
+    user-select: none;
+    transition: color var(--transition-fast);
+}
+
+/* Hover sul titolo per feedback interattivo */
+.permission-card summary:hover {
+    color: var(--color-primary);
+}
+
+/* Rimuove marker triangolare di default dell'elemento details
+   Compatibilita cross-browser (webkit/standard) */
+.permission-card summary::-webkit-details-marker {
+    display: none;
+}
+
+.permission-card summary::marker {
+    display: none;
+}
+
+/* Contenitore interno della card aperta
+   Contiene descrizione e pulsante azione */
+.permission-card > div {
+    margin-top: 15px;
+}
+
+/* Paragrafo descrittivo all'interno della card
+   Spiega cosa fa la feature e rischi privacy */
+.permission-card > div > p {
+    color: var(--color-text-light);
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+/* Container per visualizzare risultati dopo richiesta permesso
+   Popolato dinamicamente da JavaScript */
+.permission-result {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: var(--color-code-bg);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-border);
+    font-size: 0.95em;
+    min-height: 40px;
+}
+
+/* Stile per messaggi di errore nei risultati
+   Usato quando richiesta permesso fallisce */
+.permission-result .error,
+.permission-result p.error {
+    color: var(--color-error);
+    font-weight: bold;
+}
+
+/* Pulsanti azione all'interno delle card
+   Mantiene margine superiore per spaziatura */
+.permission-card .btn-verde {
+    margin-top: 10px;
+}
+
+/* Stato successo per pulsanti dopo concessione permesso
+   Aggiunta classe 'success' tramite JavaScript */
+.permission-card .btn-verde.success {
+    background-color: var(--color-button-success);
+    cursor: default;
+    opacity: 0.9;
+}
+
+/* Stato hover per pulsanti successo - nessun effetto */
+.permission-card .btn-verde.success:hover {
+    background-color: var(--color-button-success);
+}
+
+/* Titoli h4 e h5 all'interno dei risultati
+   Usati per strutturare output complessi (es. lista dispositivi) */
+.permission-result h4,
+.permission-result h5 {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    color: var(--color-text);
+}
+
+/* Liste non ordinate nei risultati
+   Usate per elencare dispositivi o dati strutturati */
+.permission-result ul {
+    margin: 5px 0 10px 20px;
+    padding: 0;
+}
+
+.permission-result li {
+    margin-bottom: 3px;
+}
+
+/* Testo letto dagli appunti: va a capo e resta dentro la card anche se e' una riga lunga,
+   e un testo molto lungo scorre invece di allungare la pagina */
+.permission-result .clipboard-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Liste descrittive (dl/dt/dd) nei risultati
+   Usate per coppie chiave-valore (es. coordinate GPS) */
+.permission-result dl {
+    margin: 10px 0;
+}
+
+.permission-result dt {
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.permission-result dd {
+    margin-left: 20px;
+    margin-bottom: 5px;
+}
+
+/* Warning educativo finale nella sezione permessi
+   Mantiene margine superiore adeguato */
+#advanced-permissions-section .fp-warning {
+    margin-top: 30px;
+}
