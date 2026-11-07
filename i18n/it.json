@@ -1,6 +1,9 @@
 {
   "pagina.salta": "Vai al contenuto principale",
   "pagina.caricamento": "Analisi in corso...",
+  "pagina.dati.testo": "La demo salva nel tuo browser la cronologia delle visite e la prima lettura della batteria: così alla prossima visita ti riconosce. Questi dati non escono dal browser.",
+  "pagina.dati.pulsante": "Cancella i dati di questa demo",
+  "pagina.dati.fatto": "Dati cancellati: alla prossima visita la demo ti vedrà come nuovo. Lingua e fuso scelti restano.",
   "errore.raccolta": "Errore durante la raccolta dei dati. Riprova ricaricando la pagina.",
   "footer.codice": "Codice su GitHub",
   "footer.licenza": "Licenza",

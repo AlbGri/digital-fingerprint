@@ -1,6 +1,9 @@
 {
   "pagina.salta": "Skip to main content",
   "pagina.caricamento": "Analyzing...",
+  "pagina.dati.testo": "The demo stores your visit history and the first battery reading in your browser, so it recognizes you on your next visit. This data never leaves the browser.",
+  "pagina.dati.pulsante": "Delete this demo's data",
+  "pagina.dati.fatto": "Data deleted: on your next visit the demo will see you as new. Your chosen language and time zone stay.",
   "errore.raccolta": "Error while collecting the data. Try reloading the page.",
   "footer.codice": "Source code on GitHub",
   "footer.licenza": "License",

@@ -549,6 +549,11 @@
     margin: 30px 0;
 }
 
+.demo-data {
+    text-align: center;
+    margin-block-start: var(--spacing-xl);
+}
+
 /* Pulsante principale per mostrare sezione permessi
    Dimensioni maggiorate per visibilita */
 .permissions-toggle-button {

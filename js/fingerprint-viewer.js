@@ -1486,6 +1486,20 @@
     document.addEventListener('df:lingua', ridisegna);
     document.addEventListener('df:fuso', ridisegna);
 
+    // Toglie tutto cio' che la demo ha salvato nel browser, tranne lingua e fuso scelti
+    document.getElementById('clear-demo-data').addEventListener('click', () => {
+        const scelte = ['df.language', 'df.timezone'];
+        try {
+            Object.keys(localStorage).filter(key => !scelte.includes(key))
+                .forEach(key => localStorage.removeItem(key));
+        } catch (e) {
+            logger.warn('[fingerprint-viewer] Impossibile cancellare i dati della demo:', e);
+        }
+        const esito = document.getElementById('clear-demo-data-result');
+        esito.dataset.i18n = 'pagina.dati.fatto';
+        esito.textContent = I18n.t('pagina.dati.fatto');
+    });
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
