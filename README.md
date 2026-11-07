@@ -12,7 +12,8 @@ Senza chiedere niente, appena la pagina si apre:
   di quanto ti distingue dagli altri, e le visite precedenti in cui ti ha riconosciuto
 - browser, lingue, schermo, processore, scheda video (WebGL e WebGPU), impronte canvas e audio,
   con il rumore che alcuni browser aggiungono all'audio per difendersi
-- IP pubblico e indirizzi che escono da WebRTC
+- IP pubblico, con luogo e fornitore di rete, e indirizzi che escono da WebRTC
+- indizio di VPN, se il fuso del sistema non segna la stessa ora di quello dell'IP
 - batteria, presenza di telecamera, microfono e altoparlanti, sensori
 - Client Hints, font installati, voci di sintesi vocale, preferenze del sistema, spazio del
   browser e navigazione privata, blocco della pubblicita', tastiera e formati regionali, calcoli ed
@@ -34,6 +35,8 @@ Con un permesso, una scheda alla volta:
 
 Niente verso l'autore: nessun analytics, nessun cookie, nessun server suo. La pagina contatta solo:
 - `api64.ipify.org` e `api.ipify.org`, per l'IP pubblico
+- `ipwho.is`, per luogo, fornitore di rete e fuso dell'IP (limite di 1000 richieste al giorno
+  per tutto il sito: oltre, queste righe dicono "limite del servizio")
 - `stun.l.google.com` e `stun1.l.google.com`, server STUN di Google, per gli indirizzi WebRTC
 - `nominatim.openstreetmap.org`, solo dopo il permesso di posizione, per trasformare le coordinate
   in un indirizzo

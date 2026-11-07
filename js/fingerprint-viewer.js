@@ -13,6 +13,7 @@
         storageKey: 'fingerprint-data',
         batteryStorageKey: 'first-battery-reading',
         apiIpify: 'https://api64.ipify.org?format=json',
+        apiIpwho: 'https://ipwho.is/?fields=success,message,city,region,country,connection.isp,timezone.id,timezone.offset',
         stunServers: [
             'stun:stun.l.google.com:19302',
             'stun:stun1.l.google.com:19302'
@@ -170,6 +171,45 @@
             logger.error('[fingerprint-viewer] Errore: tutti i servizi IP pubblico non disponibili');
             return 'Non disponibile';
         }
+    }
+
+    /**
+     * Luogo, fornitore e fuso dell'IP da ipwho.is, chiesti solo con i campi che servono. Il
+     * servizio conta le richieste per sito (1000 al giorno): per questo l'IP resta a ipify.
+     *
+     * @returns {Promise<Object>} {posizione, fornitore, fuso, offsetMinuti} o {errore}
+     */
+    async function fetchIPLocation() {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 4000);
+        try {
+            const response = await fetch(CONFIG.apiIpwho, { cache: 'no-cache', signal: controller.signal });
+            if (response.status === 429) return { errore: 'Limite del servizio' };
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message);
+            return {
+                posizione: [data.city, data.region, data.country].filter(Boolean).join(', '),
+                fornitore: data.connection.isp,
+                fuso: data.timezone.id,
+                offsetMinuti: data.timezone.offset / 60
+            };
+        } catch (error) {
+            logger.warn('[fingerprint-viewer] ipwho.is non disponibile:', error.message);
+            return { errore: 'Non disponibile' };
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    /**
+     * Indizio di VPN: il fuso del browser e quello dell'IP devono segnare la stessa ora adesso
+     * (Roma e Berlino coincidono). UTC con un IP fuori da UTC e' il fuso falsato di Tor e di
+     * Firefox con resistFingerprinting.
+     */
+    function indizioVPN(fusoBrowser, offsetBrowserMinuti, luogoIP) {
+        if (luogoIP.errore) return luogoIP.errore;
+        if (luogoIP.offsetMinuti === -offsetBrowserMinuti) return 'VPN nessun indizio';
+        return ['UTC', 'Etc/UTC'].includes(fusoBrowser) ? 'Fuso falsato' : 'VPN probabile';
     }
 
     /**
@@ -1059,8 +1099,9 @@
 
         // Le raccolte che aspettano la rete o un'API lenta partono insieme: in sequenza
         // "Analisi in corso" durava fino a circa 15 secondi, cosi' dura quanto la piu' lenta (FP-07)
-        const [publicIP, webrtcData, audioFingerprint, audioNoise, mediaDevices, extraSections] = await Promise.all([
+        const [publicIP, luogoIP, webrtcData, audioFingerprint, audioNoise, mediaDevices, extraSections] = await Promise.all([
             fetchPublicIP(),
+            fetchIPLocation(),
             detectWebRTCLeak(),
             conTettoAudio(generateAudioFingerprint(), 'Impronta audio'),
             conTettoAudio(detectAudioNoise(), 'Rumore audio'),
@@ -1072,6 +1113,8 @@
         cachedFingerprint = {
             ...basicInfo,
             publicIP: publicIP,
+            luogoIP: luogoIP,
+            vpn: indizioVPN(basicInfo.timezone, basicInfo.timezoneOffset, luogoIP),
             canvasFingerprint: canvasFingerprint,
             webrtcLocalIPs: webrtcData.local,
             webrtcPublicIPs: webrtcData.public,
@@ -1195,7 +1238,11 @@
         'Nessun movimento': 'valore.nessunMovimento',
         'Rumore assente': 'valore.rumoreAssente',
         'Rumore presente': 'valore.rumorePresente',
-        'Altro': 'valore.altro'
+        'Altro': 'valore.altro',
+        'Limite del servizio': 'valore.limiteServizio',
+        'VPN nessun indizio': 'valore.vpnNessunIndizio',
+        'VPN probabile': 'valore.vpnProbabile',
+        'Fuso falsato': 'valore.fusoFalsato'
     };
 
     // Dispositivi oltre i quali due hanno lo stesso ID con probabilita' del 50% (ID a 32 bit)
@@ -1261,6 +1308,7 @@
             return t(mdns ? 'valore.mdns' : 'valore.webrtcBloccato');
         })();
         const ipPubblici = (data.webrtcPublicIPs || []).filter(ip => ip && !ip.startsWith('e:'));
+        const luogo = data.luogoIP;
 
         // Senza permesso il browser elenca al massimo un dispositivo per tipo e senza nome: il
         // numero conta solo se il sito ha gia' avuto il permesso
@@ -1292,6 +1340,8 @@
             ],
             ip: [
                 { voce: 'pubblico', value: raccolto(data.publicIP) },
+                { voce: 'posizione', value: raccolto(luogo.errore || luogo.posizione) },
+                { voce: 'fornitore', value: raccolto(luogo.errore || luogo.fornitore) },
                 { voce: 'localiWebrtc', value: ipLocali },
                 { voce: 'pubbliciWebrtc', value: ipPubblici.length ? ipPubblici.join(', ') : raccolto('Non rilevato') },
                 { voce: 'candidati', value: raccolto(data.webrtcCandidateTypes) },
@@ -1302,7 +1352,9 @@
             ],
             fuso: [
                 { voce: 'fuso', value: data.timezone },
-                { voce: 'offset', value: t('sezione.fuso.offsetValore', { n: data.timezoneOffset }) }
+                { voce: 'offset', value: t('sezione.fuso.offsetValore', { n: data.timezoneOffset }) },
+                { voce: 'fusoIp', value: raccolto(luogo.errore || luogo.fuso) },
+                { voce: 'vpn', value: raccolto(data.vpn) }
             ],
             tastiera: extra('tastiera'),
             reteDichiarata: rete ? [
