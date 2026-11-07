@@ -125,8 +125,10 @@
     /* Skip link per screen reader WCAG 2.1 */
     .skip-link {
         position: absolute;
-        inset-block-start: -40px;
+        inset-block-start: 0;
         inset-inline-start: 0;
+        /* spostato della sua altezza, qualunque sia: un valore fisso lo lasciava sporgere */
+        transform: translateY(-100%);
         background: var(--color-primary);
         color: white;
         padding-block: 8px;
@@ -136,7 +138,7 @@
         font-weight: bold;
 
         &:focus {
-            inset-block-start: 0;
+            transform: none;
         }
     }
 
