@@ -317,6 +317,11 @@
     padding: 0;
 }
 
+/* Nome e valore sulla stessa riga: il titolo del riquadro resta a blocco */
+.fp-invalid-list strong {
+    display: inline;
+}
+
 .fp-section {
     margin-block-end: 20px;
 }

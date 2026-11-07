@@ -1113,16 +1113,6 @@
      * Analizza dati comportamentali raccolti
      */
     function analyzeBehavioralData(data) {
-        if (data.mouseMovements.length === 0) {
-            return {
-                mouseSpeed: 'Nessun movimento',
-                clickCount: 0,
-                scrollCount: 0,
-                keystrokeCount: 0,
-                avgMouseSpeed: 0
-            };
-        }
-
         let totalDistance = 0;
         let totalTime = 0;
 
@@ -1139,12 +1129,12 @@
 
         const avgSpeed = totalTime > 0 ? (totalDistance / totalTime * 1000).toFixed(2) : 0;
 
+        // Senza mouse (telefono, tastiera) clic, scorrimenti e tasti contano lo stesso
         return {
-            mouseSpeed: `${avgSpeed} px/s`,
+            mouseSpeed: data.mouseMovements.length === 0 ? 'Nessun movimento' : `${avgSpeed} px/s`,
             clickCount: data.clicks.length,
             scrollCount: data.scrolls.length,
-            keystrokeCount: data.keystrokes.length,
-            avgMouseSpeed: parseFloat(avgSpeed)
+            keystrokeCount: data.keystrokes.length
         };
     }
 
