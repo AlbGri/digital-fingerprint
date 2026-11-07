@@ -868,7 +868,7 @@
      * Esclude valori spoofed, placeholder, errori o anomalie evidenti
      * 
      * Questa funzione e critica per il calcolo accurato dell'entropia:
-     * - Valori spoofed (es. WebGL Vendor "Mozilla") non sono informativi
+     * - Valori generici (es. WebGL Vendor "Mozilla") non sono informativi
      * - Placeholder generici non contribuiscono all'unicita
      * - Errori di raccolta dati devono essere esclusi
      * 
@@ -899,76 +899,32 @@
         // Validazioni specifiche per ogni tipo di componente
         switch(componentName) {
             case 'webglVendor':
-                // WebGL Vendor deve contenere informazioni hardware reali
-                // Valori spoofed comuni da estensioni anti-fingerprinting e browser privacy-focused
-                const spoofedVendors = [
-                    'Mozilla',              // Privacy Badger, uBlock Origin, Brave strict mode
-                    'WebKit',               // Safari privacy mode spoofing
-                    'Google Inc.',          // Troppo generico senza specificare GPU
-                    'Brian Paul',           // Mesa software renderer (non hardware)
-                    ''                      // WebGL disabilitato o bloccato
-                ];
-                
-                // Controlla se il valore e nella blacklist di vendor spoofed
-                if (spoofedVendors.includes(value)) {
-                    logger.warn(`[fingerprint-viewer] WebGL Vendor e un valore spoofed comune: "${value}"`);
+                // Nomi generici: il browser non dice il produttore vero (estensione con i nomi
+                // veri assente o bloccata, come in Firefox con resistFingerprinting), oppure il
+                // disegno e' fatto dal processore senza scheda video. Non distinguono nessuno
+                const genericVendors = ['Mozilla', 'WebKit', 'Google Inc.', 'Brian Paul'];
+                if (genericVendors.includes(value)) {
+                    logger.warn(`[fingerprint-viewer] WebGL Vendor generico: "${value}"`);
                     return false;
                 }
-                
-                // Vendor legittimi hanno pattern specifici che includono marca GPU
-                // Questi pattern identificano hardware reale vs valori randomizzati
-                const legitimateVendorPatterns = [
-                    /Google Inc\. \(NVIDIA/i,     // Es: "Google Inc. (NVIDIA Corporation)"
-                    /Google Inc\. \(AMD/i,        // Es: "Google Inc. (AMD)" 
-                    /Google Inc\. \(Intel/i,      // Es: "Google Inc. (Intel Inc.)"
-                    /Google Inc\. \(Qualcomm/i,   // Mobile: "Google Inc. (Qualcomm)"
-                    /NVIDIA Corporation/i,        // NVIDIA diretto senza Google wrapper
-                    /Intel Inc\./i,               // Intel diretto
-                    /AMD/i,                       // AMD diretto
-                    /Apple Inc\./i,               // Apple Silicon (M1, M2, etc.)
-                    /Qualcomm/i,                  // ARM mobile processors
-                    /Mali/i,                      // ARM Mali GPU (mobile)
-                    /Adreno/i                     // Qualcomm Adreno GPU (mobile)
-                ];
-                
-                // Verifica se il valore matcha almeno un pattern legittimo
-                const hasLegitimatePattern = legitimateVendorPatterns.some(pattern => pattern.test(value));
-                
-                if (!hasLegitimatePattern) {
-                    logger.warn(`[fingerprint-viewer] WebGL Vendor non matcha pattern hardware legittimi: "${value}"`);
-                    return false;
-                }
-                
                 return true;
-                
+
             case 'webglRenderer':
-                // WebGL Renderer deve identificare un modello GPU specifico
-                // Renderer spoofed comuni da privacy tools
-                const spoofedRenderers = [
+                // Stessa logica: nomi generici e disegno senza scheda video. Nessun elenco di
+                // modelli ammessi: scarterebbe GPU vere (Apple, Intel HD e Arc, PowerVR, Xclipse)
+                const genericRenderers = [
                     'Mozilla',
                     'WebKit',
-                    'SwiftShader',                      // Software renderer Google (no hardware)
-                    'llvmpipe',                         // Mesa software renderer Linux
-                    'Microsoft Basic Render Driver'     // Fallback generico Windows
+                    'SwiftShader',
+                    'llvmpipe',
+                    'Microsoft Basic Render Driver'
                 ];
-                
-                // Controlla se contiene valori spoofed noti
-                if (spoofedRenderers.some(spoof => value.includes(spoof))) {
-                    logger.warn(`[fingerprint-viewer] WebGL Renderer contiene valore spoofed: "${value}"`);
+                if (genericRenderers.some(generic => value.includes(generic))) {
+                    logger.warn(`[fingerprint-viewer] WebGL Renderer generico: "${value}"`);
                     return false;
                 }
-                
-                // Renderer legittimi devono contenere modello GPU identificabile
-                // Pattern comuni: "GTX", "RTX", "Radeon", "Iris", "UHD", "Vega", "Mali", "Adreno"
-                const hasGpuModel = /GTX|RTX|Radeon|Iris|UHD|Vega|Mali|Adreno|GeForce|Quadro|Tesla/i.test(value);
-                
-                if (!hasGpuModel) {
-                    logger.warn(`[fingerprint-viewer] WebGL Renderer non contiene modello GPU identificabile: "${value}"`);
-                    return false;
-                }
-                
                 return true;
-                
+
             case 'canvasFingerprint':
                 // Canvas fingerprint randomizzati hanno valori tipici riconoscibili
                 // Estensioni come Canvas Defender generano hash con pattern specifici
