@@ -13,7 +13,7 @@
         storageKey: 'fingerprint-data',
         batteryStorageKey: 'first-battery-reading',
         apiIpify: 'https://api64.ipify.org?format=json',
-        apiIpwho: 'https://ipwho.is/?fields=success,message,city,region,country,connection.isp,timezone.id,timezone.offset',
+        apiIpwho: 'https://ipwho.is/?fields=success,message,city,region,country,connection.isp,connection.asn,timezone.id,timezone.offset',
         stunServers: [
             'stun:stun.l.google.com:19302',
             'stun:stun1.l.google.com:19302'
@@ -177,7 +177,7 @@
      * Luogo, fornitore e fuso dell'IP da ipwho.is, chiesti solo con i campi che servono. Il
      * servizio conta le richieste per sito (1000 al giorno): per questo l'IP resta a ipify.
      *
-     * @returns {Promise<Object>} {posizione, fornitore, fuso, offsetMinuti} o {errore}
+     * @returns {Promise<Object>} {posizione, fornitore, datacenter, fuso, offsetMinuti} o {errore}
      */
     async function fetchIPLocation() {
         const controller = new AbortController();
@@ -190,6 +190,7 @@
             return {
                 posizione: [data.city, data.region, data.country].filter(Boolean).join(', '),
                 fornitore: data.connection.isp,
+                datacenter: window.RetiDatacenter.has(data.connection.asn),
                 fuso: data.timezone.id,
                 offsetMinuti: data.timezone.offset / 60
             };
@@ -202,12 +203,13 @@
     }
 
     /**
-     * Indizio di VPN: il fuso del browser e quello dell'IP devono segnare la stessa ora adesso
-     * (Roma e Berlino coincidono). UTC con un IP fuori da UTC e' il fuso falsato di Tor e di
-     * Firefox con resistFingerprinting.
+     * Indizio di VPN: un IP di datacenter, oppure un fuso del browser che non segna la stessa
+     * ora di quello dell'IP (Roma e Berlino coincidono). UTC con un IP fuori da UTC e' il fuso
+     * falsato di Tor e di Firefox con resistFingerprinting.
      */
     function indizioVPN(fusoBrowser, offsetBrowserMinuti, luogoIP) {
         if (luogoIP.errore) return luogoIP.errore;
+        if (luogoIP.datacenter) return 'VPN datacenter';
         if (luogoIP.offsetMinuti === -offsetBrowserMinuti) return 'VPN nessun indizio';
         return ['UTC', 'Etc/UTC'].includes(fusoBrowser) ? 'Fuso falsato' : 'VPN probabile';
     }
@@ -1244,6 +1246,7 @@
         'Altro': 'valore.altro',
         'Limite del servizio': 'valore.limiteServizio',
         'VPN nessun indizio': 'valore.vpnNessunIndizio',
+        'VPN datacenter': 'valore.vpnDatacenter',
         'VPN probabile': 'valore.vpnProbabile',
         'Fuso falsato': 'valore.fusoFalsato'
     };
@@ -1345,6 +1348,7 @@
                 { voce: 'pubblico', value: raccolto(data.publicIP) },
                 { voce: 'posizione', value: raccolto(luogo.errore || luogo.posizione) },
                 { voce: 'fornitore', value: raccolto(luogo.errore || luogo.fornitore) },
+                { voce: 'vpn', value: raccolto(data.vpn) },
                 { voce: 'localiWebrtc', value: ipLocali },
                 { voce: 'pubbliciWebrtc', value: ipPubblici.length ? ipPubblici.join(', ') : raccolto('Non rilevato') },
                 { voce: 'candidati', value: raccolto(data.webrtcCandidateTypes) },
@@ -1356,8 +1360,7 @@
             fuso: [
                 { voce: 'fuso', value: data.timezone },
                 { voce: 'offset', value: t('sezione.fuso.offsetValore', { n: data.timezoneOffset }) },
-                { voce: 'fusoIp', value: raccolto(luogo.errore || luogo.fuso) },
-                { voce: 'vpn', value: raccolto(data.vpn) }
+                { voce: 'fusoIp', value: raccolto(luogo.errore || luogo.fuso) }
             ],
             tastiera: extra('tastiera'),
             reteDichiarata: rete ? [

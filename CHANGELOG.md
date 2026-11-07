@@ -2,7 +2,7 @@
 
 ## 2026-11-07
 - Dall'IP la pagina ricava citta' e fornitore di rete (servizio ipwho.is) e segnala una probabile
-  VPN quando il fuso del sistema non segna la stessa ora di quello dell'IP
+  VPN quando l'IP e' di un datacenter o il fuso del sistema non segna la stessa ora di quello dell'IP
 - Nuova sezione "Blocco della pubblicita'": la pagina si accorge se un'estensione come uBlock
   Origin, o la protezione di Brave, ferma la pubblicita'
 - La pagina si accorge se il browser aggiunge rumore all'audio per difendersi, come fanno Brave e

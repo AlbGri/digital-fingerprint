@@ -13,7 +13,8 @@ Senza chiedere niente, appena la pagina si apre:
 - browser, lingue, schermo, processore, scheda video (WebGL e WebGPU), impronte canvas e audio,
   con il rumore che alcuni browser aggiungono all'audio per difendersi
 - IP pubblico, con luogo e fornitore di rete, e indirizzi che escono da WebRTC
-- indizio di VPN, se il fuso del sistema non segna la stessa ora di quello dell'IP
+- indizio di VPN: IP di un datacenter, oppure fuso del sistema che non segna la stessa ora di
+  quello dell'IP
 - batteria, presenza di telecamera, microfono e altoparlanti, sensori
 - Client Hints, font installati, voci di sintesi vocale, preferenze del sistema, spazio del
   browser e navigazione privata, blocco della pubblicita', tastiera e formati regionali, calcoli ed
@@ -61,3 +62,7 @@ poi http://127.0.0.1:8000/
 ## Licenza
 
 [AGPL-3.0](LICENSE).
+
+L'elenco delle reti di datacenter in `js/reti-datacenter.js` viene da
+[bad-asn-list](https://github.com/brianhama/bad-asn-list) di Brian Hamachek, con licenza MIT,
+riportata in testa al file.
