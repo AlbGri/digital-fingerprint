@@ -391,7 +391,6 @@
   "permessi.sensori.accelY": "Acceleration Y:",
   "permessi.sensori.accelZ": "Acceleration Z:",
   "permessi.sensori.interrompi": "Stop",
-  "permessi.sensori.nota3d": "Note: 3D view with Three.js in progress",
   "permessi.sensori.interrotto": "Tracking stopped",
   "permessi.sensori.riattiva": "Turn sensors on again",
   "permessi.schermo.soloComputer": "Screen sharing not supported on this device (computers only)",

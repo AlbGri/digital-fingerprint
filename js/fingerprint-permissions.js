@@ -13,19 +13,6 @@
 (function() {
     'use strict';
 
-    /* Lista protocol handlers da testare (9 applicazioni) */
-    const PROTOCOL_HANDLERS = [
-        { name: 'Spotify', protocol: 'spotify://' },
-        { name: 'Zoom', protocol: 'zoom://' },
-        { name: 'Discord', protocol: 'discord://' },
-        { name: 'Steam', protocol: 'steam://' },
-        { name: 'Slack', protocol: 'slack://' },
-        { name: 'Skype', protocol: 'skype://' },
-        { name: 'Microsoft Teams', protocol: 'msteams://' },
-        { name: 'Telegram', protocol: 'tg://' },
-        { name: 'WhatsApp Desktop', protocol: 'whatsapp://' }
-    ];
-
     const t = window.I18n.t;
     const esc = FingerprintUtils.escapeHtml;
 
@@ -103,7 +90,7 @@
         /**
          * Gestisce click su pulsanti azione permessi
          */
-        handlePermissionAction: async function(action, button) {
+        handlePermissionAction: function(action, button) {
             logger.log('[fingerprint-permissions] Azione richiesta:', action);
 
             switch(action) {
@@ -121,9 +108,6 @@
                     break;
                 case 'clipboard-read':
                     this.requestClipboard(button);
-                    break;
-                case 'protocol-handlers':
-                    await this.requestProtocolHandlers();
                     break;
                 default:
                     logger.warn('[fingerprint-permissions] Azione non riconosciuta:', action);
@@ -533,7 +517,6 @@
                     ${riga('accelZ', 'motion-accel-z')}
                 </dl>
                 <button type="button" id="stop-motion-tracking">${esc(t('permessi.sensori.interrompi'))}</button>
-                <p>${esc(t('permessi.sensori.nota3d'))}</p>
             `;
 
             const orientationHandler = (event) => {
@@ -631,126 +614,7 @@
             button.classList.add('success');
 
             logger.log('[fingerprint-permissions] Screen capture avviato');
-        },
-
-        /**
-         * Testa singolo protocol handler tramite tecnica blur detection
-         * Crea un link invisibile e verifica se il browser perde focus (app trovata)
-         * o se scade il timeout (app non installata/non rilevabile)
-         * @param {string} protocol - URI scheme da testare (es. 'spotify://')
-         * @param {number} timeout - Timeout in ms prima di dichiarare non trovato
-         * @returns {Promise<boolean>} True se l'app risponde al protocollo
-         */
-        testProtocolHandler: async function(protocol, timeout = 2000) {
-            return new Promise((resolve) => {
-                let resolved = false;
-                let timer;
-                
-                const blurHandler = () => {
-                    if (!resolved) {
-                        resolved = true;
-                        window.removeEventListener('blur', blurHandler);
-                        clearTimeout(timer);
-                        resolve(true);
-                    }
-                };
-                
-                timer = setTimeout(() => {
-                    if (!resolved) {
-                        resolved = true;
-                        window.removeEventListener('blur', blurHandler);
-                        resolve(false);
-                    }
-                }, timeout);
-                
-                window.addEventListener('blur', blurHandler);
-                
-                try {
-                    const link = document.createElement('a');
-                    link.href = protocol;
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                } catch (error) {
-                    logger.log('fingerprint-permissions Errore test protocol:', protocol, error);
-                    if (!resolved) {
-                        resolved = true;
-                        window.removeEventListener('blur', blurHandler);
-                        clearTimeout(timer);
-                        resolve(false);
-                    }
-                }
-            });
-        },
-
-        /**
-         * Testa tutti i protocol handlers sequenzialmente
-         * Intervallo di 500ms tra un test e l'altro per evitare conflitti di blur detection
-         */
-        requestProtocolHandlers: async function() {
-            const resultContainer = document.getElementById('protocol-handlers-result');
-            const button = document.querySelector('[data-permission-action="protocol-handlers"]');
-            
-            if (!resultContainer) return;
-            
-            if (button) {
-                button.disabled = true;
-                button.textContent = 'Test in corso...';
-            }
-            
-            logger.log('[fingerprint-permissions] Avvio Protocol Handlers Detection...');
-            
-            resultContainer.innerHTML = `
-                <p><strong>Avviso:</strong> Questa tecnica genererà popup di conferma per ogni app testata.</p>
-                <p>Test in corso su ${PROTOCOL_HANDLERS.length} applicazioni...</p>
-            `;
-            
-            const results = [];
-            
-            for (const handler of PROTOCOL_HANDLERS) {
-                logger.log(`[fingerprint-permissions] Test ${handler.name} (${handler.protocol})...`);
-                
-                const isInstalled = await PermissionsManager.testProtocolHandler(handler.protocol);
-                
-                results.push({
-                    name: handler.name,
-                    protocol: handler.protocol,
-                    installed: isInstalled
-                });
-                
-                await new Promise(resolve => setTimeout(resolve, 500));
-            }
-            
-            const installedCount = results.filter(r => r.installed).length;
-            
-            let html = `<h4>Risultati Protocol Handlers (${installedCount}/${PROTOCOL_HANDLERS.length} rilevate)</h4><ul>`;
-            
-            for (const result of results) {
-                const icon = result.installed ? '✓' : '✗';
-                const status = result.installed ? 'Installata' : 'Non rilevata';
-                html += `<li>${icon} <strong>${result.name}</strong> (${result.protocol}): ${status}</li>`;
-            }
-            
-            html += `</ul>`;
-            
-            if (installedCount === 0) {
-                html += `<p class="fp-info"><strong>Nota:</strong> Nessuna app rilevata. Questo può significare che non sono installate o che il browser blocca la tecnica per privacy.</p>`;
-            }
-            
-            resultContainer.innerHTML = html;
-            
-            if (button) {
-                button.disabled = false;
-                button.textContent = 'Riprova Test';
-                button.classList.add('success');
-            }
-            
-            logger.log('[fingerprint-permissions] Protocol Handlers Detection completata:', results);
         }
-
-
-
     };
 
 

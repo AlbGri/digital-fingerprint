@@ -391,7 +391,6 @@
   "permessi.sensori.accelY": "Accelerazione Y:",
   "permessi.sensori.accelZ": "Accelerazione Z:",
   "permessi.sensori.interrompi": "Interrompi",
-  "permessi.sensori.nota3d": "Nota: visualizzazione 3D con Three.js in sviluppo",
   "permessi.sensori.interrotto": "Rilevamento interrotto",
   "permessi.sensori.riattiva": "Riattiva i sensori",
   "permessi.schermo.soloComputer": "Condivisione dello schermo non supportata su questo dispositivo (solo computer)",
