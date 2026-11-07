@@ -5,3 +5,7 @@
   codice aperto su GitHub
 - Tolto tutto cio' che serviva al sito e non alla demo: registrazione degli errori su un foglio
   Google, avviso dell'AdBlock, difese anti-bot, menu e footer del sito
+- Pagina in italiano e inglese, con l'orologio nel fuso orario scelto
+- Sezioni in cinque gruppi, ognuna con una spiegazione e la riga di permessi e servizi esterni
+- "Quanto sei unico" dichiara che la stima e' un limite massimo e cita le misure su persone reali;
+  tolto il "livello privacy"

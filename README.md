@@ -12,11 +12,13 @@ Senza chiedere niente, appena la pagina si apre:
   di quanto ti distingue dagli altri, e le visite precedenti in cui ti ha riconosciuto
 - browser, lingue, schermo, processore, scheda video (WebGL e WebGPU), impronte canvas e audio
 - IP pubblico e indirizzi che escono da WebRTC
-- batteria, numero e tipo di telecamere, microfoni e sensori
+- batteria, presenza di telecamera, microfono e altoparlanti, sensori
 - Client Hints, font installati, voci di sintesi vocale, preferenze del sistema, spazio del
   browser e navigazione privata, tastiera e formati regionali, calcoli ed emoji, schermi e finestra
 - movimenti del mouse, clic, scorrimento e tasti premuti sulla pagina
 - velocita' reale della connessione, scaricando fino a 10 MB dal sito stesso
+
+La pagina e' in italiano o in inglese, con un orologio nel fuso orario che scegli.
 
 Con un permesso, una scheda alla volta:
 - posizione GPS e indirizzo
@@ -38,8 +40,8 @@ Questi servizi vedono il tuo IP quando li contatti, e l'hosting (GitHub Pages, p
 df.albgri.com) riceve le normali richieste di ogni sito.
 
 ID, cronologia delle visite e prima lettura della batteria restano nel localStorage del tuo
-browser, per mostrarti che la pagina ti riconosce. Si cancellano dalle impostazioni del browser,
-con i dati del sito.
+browser, per mostrarti che la pagina ti riconosce, insieme alla lingua e al fuso scelti. Si
+cancellano dalle impostazioni del browser, con i dati del sito.
 
 ## Provarla in locale
 
