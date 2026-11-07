@@ -13,7 +13,6 @@
         storageKey: 'fingerprint-data',
         batteryStorageKey: 'first-battery-reading',
         apiIpify: 'https://api64.ipify.org?format=json',
-        cacheExpiration: 3600000,
         stunServers: [
             'stun:stun.l.google.com:19302',
             'stun:stun1.l.google.com:19302'

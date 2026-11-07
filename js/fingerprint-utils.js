@@ -123,41 +123,6 @@
         },
 
         /**
-         * Debounce per ottimizzare eventi frequenti
-         * @param {Function} func - Funzione da eseguire
-         * @param {number} wait - Tempo di attesa in ms
-         * @returns {Function} Funzione debounced
-         */
-        debounce: function(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        },
-
-        /**
-         * Throttle per limitare frequenza esecuzione
-         * @param {Function} func - Funzione da eseguire
-         * @param {number} limit - Limite temporale in ms
-         * @returns {Function} Funzione throttled
-         */
-        throttle: function(func, limit) {
-            let inThrottle;
-            return function(...args) {
-                if (!inThrottle) {
-                    func.apply(this, args);
-                    inThrottle = true;
-                    setTimeout(() => inThrottle = false, limit);
-                }
-            };
-        },
-
-        /**
          * Verifica supporto API nel browser
          * @param {string} apiName - Nome dell'API da verificare
          * @returns {boolean} True se API supportata
@@ -182,59 +147,6 @@
             };
 
             return apiMap[apiName] || false;
-        },
-
-        /**
-         * Genera UUID v4
-         * @returns {string} UUID generato
-         */
-        generateUUID: function() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                const r = Math.random() * 16 | 0;
-                const v = c === 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        },
-
-        /**
-         * Salva dati in localStorage con gestione errori
-         * @param {string} key - Chiave storage
-         * @param {*} value - Valore da salvare
-         * @returns {boolean} True se salvataggio riuscito
-         */
-        saveToStorage: function(key, value) {
-            try {
-                localStorage.setItem(key, JSON.stringify(value));
-                return true;
-            } catch (error) {
-                logger.warn('[fingerprint-utils] Errore salvataggio localStorage:', error);
-                return false;
-            }
-        },
-
-        /**
-         * Recupera dati da localStorage con gestione errori
-         * @param {string} key - Chiave storage
-         * @returns {*} Valore recuperato o null
-         */
-        loadFromStorage: function(key) {
-            try {
-                const item = localStorage.getItem(key);
-                return item ? JSON.parse(item) : null;
-            } catch (error) {
-                logger.warn('[fingerprint-utils] Errore lettura localStorage:', error);
-                return null;
-            }
-        },
-
-        /**
-         * Calcola distanza euclidea tra due punti
-         * @param {Object} p1 - Primo punto {x, y}
-         * @param {Object} p2 - Secondo punto {x, y}
-         * @returns {number} Distanza
-         */
-        calculateDistance: function(p1, p2) {
-            return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
         },
 
         /**
