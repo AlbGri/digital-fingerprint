@@ -775,48 +775,40 @@
     /**
      * Gestisce tracking visite cross-sessione usando localStorage
      * Simula comportamento server-side per dimostrare tracking persistente
-     * Salva cronologia visite con browser e timestamp per analisi pattern
+     * Salva conteggio, prima visita e le ultime visite con browser e timestamp
      * @param {string} persistentID - ID univoco del dispositivo generato
      * @returns {Object} Statistiche tracking con visitCount, history, firstVisit
      */
     function getTrackingHistory(persistentID) {
         const historyKey = `${CONFIG.trackingHistoryPrefix}${persistentID}`;
-        let history = [];
-        
-        try {
-            const stored = localStorage.getItem(historyKey);
-            if (stored) {
-                history = JSON.parse(stored);
-            }
-        } catch (e) {
-            logger.error('[fingerprint-viewer] Errore lettura tracking history:', e);
-            history = [];
-        }
-        
-        /* Aggiungi visita corrente: data ISO, la si formatta nella lingua scelta quando si mostra */
+        /* Data ISO, la si formatta nella lingua scelta quando si mostra */
         const currentVisit = {
             browser: detectBrowser(),
             timestamp: new Date().toISOString()
         };
-        
-        history.push(currentVisit);
-        
-        /* Tutta la history senza limite */
+        let tracking = { visitCount: 0, firstVisit: currentVisit.timestamp, history: [] };
+
         try {
-            localStorage.setItem(historyKey, JSON.stringify(history));
-            logger.log('fingerprint-viewer Tracking history aggiornata:', history.length, 'visite');
+            const stored = localStorage.getItem(historyKey);
+            if (stored) {
+                tracking = JSON.parse(stored);
+            }
+        } catch (e) {
+            logger.error('[fingerprint-viewer] Errore lettura tracking history:', e);
+        }
+
+        tracking.visitCount += 1;
+        /* Solo le ultime visite: conteggio e prima visita bastano per il resto */
+        tracking.history = tracking.history.concat(currentVisit).slice(-CONFIG.maxHistoryEntries);
+
+        try {
+            localStorage.setItem(historyKey, JSON.stringify(tracking));
+            logger.log('fingerprint-viewer Tracking history aggiornata:', tracking.visitCount, 'visite');
         } catch (e) {
             logger.warn('fingerprint-viewer Impossibile salvare tracking history:', e);
         }
-        
-        /* Crea subset delle ultime 10 visite SOLO per cronologia display */
-        const recentHistory = history.slice(-CONFIG.maxHistoryEntries);
-        
-        return {
-            visitCount: history.length,
-            history: recentHistory,
-            firstVisit: history[0].timestamp
-        };
+
+        return tracking;
     }
 
     // I nove valori dell'ID, con i bit stimati per ciascuno e la riga che li mostra. L'ordine
