@@ -374,418 +374,36 @@
     }
 
     /**
-     * Genera Audio Fingerprint con strategia di caching persistente
-     * 
-     * Strategia:
-     * 1. Controlla cache localStorage (24h validità) per evitare rigenerazioni
-     * 2. Se cache valida, restituisce valore salvato (evita loop al refresh)
-     * 3. Se non cached, tenta generazione con AudioContext
-     * 4. Gestisce autoplay policy con fallback a hash offline
-     * 5. Salva risultato in localStorage per utilizzi futuri
-     * 
-     * @returns {Promise<string>} Hash audio fingerprint o valore fallback
+     * Impronta audio: un oscillatore passa da un compressore e si somma un tratto del risultato.
+     * Calcolato offline e' sempre uguale sullo stesso dispositivo, e non serve un gesto
+     * dell'utente; varia fra hardware, driver e browser.
+     *
+     * @returns {Promise<string>} Somma dei campioni, o un valore di errore
      */
     async function generateAudioFingerprint() {
-        // Configurazione cache localStorage
-        const STORAGE_KEY = 'fp_audio_cache';
-        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 ore di validità
-        
-        // Fase 1: Verifica cache esistente in localStorage
-        // Questa è la chiave per risolvere il loop al refresh
+        const OfflineContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        if (!OfflineContext) return 'Non disponibile';
         try {
-            const cached = localStorage.getItem(STORAGE_KEY);
-            if (cached) {
-                const data = JSON.parse(cached);
-                const now = Date.now();
-                
-                // Verifica se cache ancora valida (< 24 ore)
-                if (data.timestamp && (now - data.timestamp) < CACHE_DURATION) {
-                    logger.log('[fingerprint-viewer] Uso audio fingerprint da cache localStorage:', data.hash);
-                    return data.hash;
-                } else {
-                    logger.log('[fingerprint-viewer] Cache audio scaduta, rigenero');
-                }
-            }
-        } catch (e) {
-            logger.warn('[fingerprint-viewer] Errore lettura cache audio localStorage:', e);
-        }
-        
-        // Fase 2: Cache non disponibile o scaduta, procedi con generazione
-        return new Promise(async (resolve) => {
-            let resolved = false;
-            let context = null;
-            
-            try {
-                // Verifica supporto Web Audio API
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) {
-                    logger.warn('[fingerprint-viewer] Web Audio API non supportata');
-                    resolve('Non disponibile');
-                    return;
-                }
-
-                // Crea nuovo AudioContext
-                // NOTA: I browser moderni possono bloccare la creazione se non c'è stata
-                // interazione utente recente (autoplay policy)
-                context = new AudioContext();
-
-                // Gestione Autoplay Policy
-                // Resume AudioContext se sospeso per policy di sicurezza del browser
-                // Non richiede permessi espliciti, ma necessita interazione utente
-                if (context.state === 'suspended') {
-                    logger.log('[fingerprint-viewer] AudioContext suspended, tento resume');
-                    
-                    try {
-                        // Tenta resume del context
-                        await context.resume();
-                        
-                        // Attesa breve per permettere al context di cambiare stato
-                        await new Promise(r => setTimeout(r, 50));
-                        
-                        // Verifica se resume ha avuto successo controllando stato effettivo
-                        if (context.state === 'suspended') {
-                            // Resume fallito: context ancora bloccato (nessuna interazione utente)
-                            logger.warn('[fingerprint-viewer] AudioContext rimane suspended dopo resume, uso offline hash');
-                            
-                            // Genera hash alternativo da proprietà statiche
-                            const offlineHash = generateOfflineAudioHash(context);
-                            
-                            // Salva hash offline in cache per evitare rigenerazioni future
-                            try {
-                                localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                                    hash: offlineHash,
-                                    timestamp: Date.now(),
-                                    type: 'offline'
-                                }));
-                                logger.log('[fingerprint-viewer] Hash offline salvato in cache');
-                            } catch (e) {
-                                logger.warn('[fingerprint-viewer] Impossibile salvare cache:', e);
-                            }
-                            
-                            // Cleanup: chiudi context inutilizzato
-                            context.close().catch(() => {});
-                            
-                            resolve(offlineHash);
-                            return;
-                        }
-                        
-                        logger.log('[fingerprint-viewer] AudioContext resumed con successo');
-                        
-                    } catch (resumeError) {
-                        // Resume ha sollevato eccezione (policy restrittiva)
-                        logger.warn('[fingerprint-viewer] Impossibile resume AudioContext:', resumeError);
-                        
-                        // Fallback a hash offline
-                        const offlineHash = generateOfflineAudioHash(context);
-                        
-                        // Salva in cache
-                        try {
-                            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                                hash: offlineHash,
-                                timestamp: Date.now(),
-                                type: 'offline'
-                            }));
-                        } catch (e) {}
-                        
-                        // Cleanup context
-                        context.close().catch(() => {});
-                        
-                        resolve(offlineHash);
-                        return;
-                    }
-                }
-
-                // AudioContext running: procedi con generazione normale
-                
-                // Verifica supporto AudioWorklet (API moderna)
-                const supportsAudioWorklet = context.audioWorklet !== undefined;
-
-                if (supportsAudioWorklet) {
-                    // Usa AudioWorklet (moderno, migliori performance)
-                    // Processing eseguito in thread separato, non blocca UI
-                    logger.log('[fingerprint-viewer] Usando AudioWorklet per audio fingerprint');
-                    
-                    await generateWithAudioWorklet(context, (hash) => {
-                        if (!resolved) {
-                            resolved = true;
-                            
-                            // Salva hash generato con successo in cache
-                            try {
-                                localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                                    hash: hash,
-                                    timestamp: Date.now(),
-                                    type: 'worklet'
-                                }));
-                                logger.log('[fingerprint-viewer] Hash AudioWorklet salvato in cache');
-                            } catch (e) {
-                                logger.warn('[fingerprint-viewer] Impossibile salvare cache:', e);
-                            }
-                            
-                            resolve(hash);
-                        }
-                    }, resolved);
-                    
-                } else {
-                    // Fallback a ScriptProcessorNode (deprecato ma compatibile con browser legacy)
-                    logger.warn('[fingerprint-viewer] AudioWorklet non supportato, uso ScriptProcessorNode');
-                    
-                    await generateWithScriptProcessor(context, (hash) => {
-                        if (!resolved) {
-                            resolved = true;
-                            
-                            // Salva hash in cache
-                            try {
-                                localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                                    hash: hash,
-                                    timestamp: Date.now(),
-                                    type: 'scriptprocessor'
-                                }));
-                                logger.log('[fingerprint-viewer] Hash ScriptProcessor salvato in cache');
-                            } catch (e) {
-                                logger.warn('[fingerprint-viewer] Impossibile salvare cache:', e);
-                            }
-                            
-                            resolve(hash);
-                        }
-                    }, resolved);
-                }
-
-            } catch (error) {
-                // Gestione errori generici durante audio fingerprinting
-                if (!resolved) {
-                    resolved = true;
-                    logger.error('[fingerprint-viewer] Errore critico Audio fingerprinting:', error);
-                    
-                    // Cleanup finale: chiudi context se ancora aperto
-                    try {
-                        if (context && context.state !== 'closed') {
-                            context.close();
-                        }
-                    } catch(e) {
-                        logger.error('[fingerprint-viewer] Errore chiusura context:', e);
-                    }
-                    
-                    resolve('Non disponibile');
-                }
-            }
-        });
-    }
-
-    /**
-     * Genera hash audio offline da proprietà statiche AudioContext
-     * Usato quando AudioContext è bloccato da autoplay policy
-     * Non richiede processing audio, solo lettura proprietà
-     * 
-     * @param {AudioContext} context - Contesto audio (anche se suspended)
-     * @returns {string} Hash basato su configurazione audio hardware
-     */
-    function generateOfflineAudioHash(context) {
-        try {
-            // Raccoglie proprietà audio disponibili senza processing
-            // Queste proprietà identificano configurazione hardware/browser
-            const components = [
-                context.sampleRate.toString(),                          // Frequenza campionamento (es. 48000 Hz)
-                context.baseLatency ? context.baseLatency.toString() : 'none',  // Latenza base sistema
-                context.destination.maxChannelCount.toString(),         // Canali audio massimi
-                context.destination.channelCount.toString(),            // Canali audio correnti
-                navigator.hardwareConcurrency ? navigator.hardwareConcurrency.toString() : 'unknown',  // CPU cores
-                screen.width + 'x' + screen.height                      // Risoluzione schermo (fingerprint aggiuntivo)
-            ];
-            
-            // Combina componenti e genera hash
-            const hash = simpleHash(components.join('|'));
-            logger.log('[fingerprint-viewer] Offline audio hash generato:', hash);
-            return hash;
-            
-        } catch (error) {
-            logger.error('[fingerprint-viewer] Errore generazione offline hash:', error);
-            return 'offline-fallback';
-        }
-    }
-
-    /**
-     * Utility: Pulisce cache audio fingerprint da localStorage
-     * Utile per debugging o reset completo fingerprint
-     * 
-     * @returns {boolean} True se cancellazione riuscita
-     */
-    function clearAudioFingerprintCache() {
-        try {
-            localStorage.removeItem('fp_audio_cache');
-            logger.log('[fingerprint-viewer] Cache audio fingerprint cancellata');
-            return true;
-        } catch (e) {
-            logger.error('[fingerprint-viewer] Errore cancellazione cache audio:', e);
-            return false;
-        }
-    }
-
-    /**
-     * Genera fingerprint usando AudioWorklet (approccio moderno)
-     * Processing eseguito in thread separato
-     * 
-     * @param {AudioContext} context - Contesto audio
-     * @param {Function} resolve - Promise resolve callback
-     * @param {boolean} resolved - Flag per prevenire risoluzioni multiple
-     */
-    async function generateWithAudioWorklet(context, resolve, resolved) {
-        try {
-            // Carica modulo AudioWorklet
-            await context.audioWorklet.addModule('js/fingerprint-audio.js');
-            
-            // Crea nodi audio
+            const context = new OfflineContext(1, 5000, 44100);
             const oscillator = context.createOscillator();
-            const analyser = context.createAnalyser();
-            const workletNode = new AudioWorkletNode(context, 'fingerprint-audio');
-            const gainNode = context.createGain();
-            
-            // Configura gain a 0 per non produrre suono
-            gainNode.gain.value = 0;
-            
-            // Configura oscillatore
             oscillator.type = 'triangle';
-            oscillator.frequency.setValueAtTime(440, context.currentTime);
-            
-            // Collega nodi
-            oscillator.connect(analyser);
-            analyser.connect(workletNode);
-            workletNode.connect(gainNode);
-            gainNode.connect(context.destination);
-            
-            // Gestisci messaggi dal worklet
-            workletNode.port.onmessage = (event) => {
-                if (resolved) return;
-                
-                if (event.data.type === 'samples') {
-                    resolved = true;
-                    
-                    // Calcola hash dai sample ricevuti
-                    const samples = event.data.data;
-                    const hash = simpleHash(samples.join(''));
-                    
-                    // Cleanup
-                    cleanupAudioNodes(oscillator, workletNode, gainNode, context);
-                    
-                    logger.log('[fingerprint-viewer] Audio fingerprint generato (AudioWorklet):', hash);
-                    resolve(hash);
-                }
-            };
-            
-            // Avvia oscillatore
+            oscillator.frequency.value = 10000;
+            const compressor = context.createDynamicsCompressor();
+            compressor.threshold.value = -50;
+            compressor.knee.value = 40;
+            compressor.ratio.value = 12;
+            compressor.attack.value = 0;
+            compressor.release.value = 0.25;
+            oscillator.connect(compressor);
+            compressor.connect(context.destination);
             oscillator.start(0);
-            
-            // Timeout come fallback
-            setTimeout(() => {
-                if (resolved) return;
-                resolved = true;
-                
-                cleanupAudioNodes(oscillator, workletNode, gainNode, context);
-                logger.warn('[fingerprint-viewer] Audio fingerprint timeout (AudioWorklet)');
-                resolve('Timeout');
-            }, CONFIG.audioTimeout);
-            
+            const samples = (await context.startRendering()).getChannelData(0);
+            let sum = 0;
+            for (let i = 4500; i < 5000; i++) sum += Math.abs(samples[i]);
+            return sum.toString();
         } catch (error) {
-            logger.error('[fingerprint-viewer] Errore AudioWorklet:', error);
-            resolve('Errore AudioWorklet');
-        }
-    }
-
-    /**
-     * Genera fingerprint usando ScriptProcessorNode (fallback per browser vecchi)
-     * Processing eseguito sul main thread (deprecato ma compatibile)
-     * 
-     * @param {AudioContext} context - Contesto audio
-     * @param {Function} resolve - Promise resolve callback
-     * @param {boolean} resolved - Flag per prevenire risoluzioni multiple
-     */
-    async function generateWithScriptProcessor(context, resolve, resolved) {
-        try {
-            const oscillator = context.createOscillator();
-            const analyser = context.createAnalyser();
-            const gainNode = context.createGain();
-            const scriptProcessor = context.createScriptProcessor(4096, 1, 1);
-
-            gainNode.gain.value = 0;
-            oscillator.type = 'triangle';
-            oscillator.connect(analyser);
-            analyser.connect(scriptProcessor);
-            scriptProcessor.connect(gainNode);
-            gainNode.connect(context.destination);
-
-            scriptProcessor.onaudioprocess = function(event) {
-                if (resolved) return;
-                resolved = true;
-                
-                const output = event.outputBuffer.getChannelData(0);
-                const hash = simpleHash(Array.from(output).join(''));
-                
-                cleanupAudioNodes(oscillator, scriptProcessor, gainNode, context);
-                
-                logger.log('[fingerprint-viewer] Audio fingerprint generato (ScriptProcessor):', hash);
-                resolve(hash);
-            };
-
-            oscillator.start(0);
-
-            setTimeout(() => {
-                if (resolved) return;
-                resolved = true;
-                
-                cleanupAudioNodes(oscillator, scriptProcessor, gainNode, context);
-                logger.warn('[fingerprint-viewer] Audio fingerprint timeout (ScriptProcessor)');
-                resolve('Timeout');
-            }, CONFIG.audioTimeout);
-            
-        } catch (error) {
-            logger.error('[fingerprint-viewer] Errore ScriptProcessor:', error);
-            resolve('Errore ScriptProcessor');
-        }
-    }
-
-    /**
-     * Cleanup sicuro di nodi audio e context
-     * Previene errori InvalidStateError
-     * 
-     * @param {OscillatorNode} oscillator - Oscillatore da fermare
-     * @param {AudioNode} processor - Nodo processore da disconnettere
-     * @param {GainNode} gainNode - Nodo gain da disconnettere
-     * @param {AudioContext} context - Context da chiudere
-     */
-    function cleanupAudioNodes(oscillator, processor, gainNode, context) {
-        // Stop oscillatore
-        try {
-            if (oscillator) {
-                oscillator.stop();
-            }
-        } catch(e) {
-            logger.warn('[fingerprint-viewer] Oscillatore gia fermato');
-        }
-        
-        // Disconnect processore
-        try {
-            if (processor) {
-                processor.disconnect();
-            }
-        } catch(e) {
-            logger.warn('[fingerprint-viewer] Processore gia disconnesso');
-        }
-        
-        // Disconnect gain
-        try {
-            if (gainNode) {
-                gainNode.disconnect();
-            }
-        } catch(e) {
-            logger.warn('[fingerprint-viewer] Gain gia disconnesso');
-        }
-        
-        // Chiudi context
-        try {
-            if (context && context.state !== 'closed') {
-                context.close();
-            }
-        } catch(e) {
-            logger.warn('[fingerprint-viewer] Context gia chiuso');
+            logger.error('[fingerprint-viewer] Errore impronta audio:', error);
+            return 'Errore';
         }
     }
 
@@ -1265,9 +883,6 @@
             'Errore',
             'Errore raccolta dati',
             'Timeout',
-            'Timeout - AudioContext bloccato',
-            'Errore AudioWorklet',
-            'Errore ScriptProcessor',
             '',
             null,
             undefined,
@@ -1370,16 +985,6 @@
                 
                 return true;
                 
-            case 'audioFingerprint':
-                // Audio fingerprint da cache offline non e affidabile
-                // Indica che non e stato possibile generare hash da audio processing reale
-                if (value.includes('offline') || value.includes('fallback')) {
-                    logger.warn(`[fingerprint-viewer] Audio Fingerprint e un fallback non affidabile: "${value}"`);
-                    return false;
-                }
-                
-                return true;
-                
             case 'hardwareConcurrency':
                 // Hardware Concurrency deve essere un numero intero positivo realistico
                 const cores = parseInt(value);
@@ -1471,13 +1076,13 @@
         const [publicIP, webrtcData, audioFingerprint, mediaDevices, extraSections] = await Promise.all([
             fetchPublicIP(),
             detectWebRTCLeak(),
-            // Audio fingerprint con timeout: su Firefox mobile l'AudioContext puo' restare bloccato
+            // Tetto di tempo: se un browser non porta a termine il calcolo, la pagina non resta ferma
             Promise.race([
                 generateAudioFingerprint(),
                 new Promise(resolve => setTimeout(() => {
-                    logger.warn('[fingerprint-viewer] Audio fingerprint timeout su Firefox mobile');
-                    resolve('Timeout - AudioContext bloccato');
-                }, CONFIG.audioTimeout || 5000))
+                    logger.warn('[fingerprint-viewer] Impronta audio: tempo scaduto');
+                    resolve('Timeout');
+                }, CONFIG.audioTimeout))
             ]),
             getMediaDevices(),
             // Tecniche aggiuntive di fingerprint-extra.js, solo mostrate: fuori dall'ID persistente
@@ -1600,10 +1205,7 @@
         'Errore raccolta': 'valore.errore',
         'Errore raccolta dati': 'valore.errore',
         'Errore rilevamento': 'valore.errore',
-        'Errore AudioWorklet': 'valore.errore',
-        'Errore ScriptProcessor': 'valore.errore',
         'Timeout': 'valore.timeout',
-        'Timeout - AudioContext bloccato': 'valore.audioBloccato',
         'Non rilevato': 'valore.nonRilevato',
         'In carica': 'valore.inCarica',
         'Scarica': 'valore.scarica',
