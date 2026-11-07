@@ -26,6 +26,19 @@
         { name: 'WhatsApp Desktop', protocol: 'whatsapp://' }
     ];
 
+    const t = window.I18n.t;
+    const esc = FingerprintUtils.escapeHtml;
+
+    // La chiave resta in data-i18n: dopo un cambio di lingua il pulsante dice lo stato attuale
+    function etichetta(button, chiave) {
+        button.dataset.i18n = chiave;
+        button.textContent = t(chiave);
+    }
+
+    function erroreHtml(messaggio) {
+        return `<p class="error">${esc(t('permessi.errore', { messaggio: messaggio }))}</p>`;
+    }
+
     const PermissionsManager = {
         
         /**
@@ -144,11 +157,11 @@
 
             try {
                 button.disabled = true;
-                button.textContent = 'Richiesta in corso...';
-                resultContainer.innerHTML = '<p>Richiesta permesso geolocalizzazione ad alta precisione...</p>';
+                etichetta(button, 'permessi.stato.richiesta');
+                resultContainer.innerHTML = `<p>${esc(t('permessi.geo.attesa'))}</p>`;
 
                 if (!FingerprintUtils.isAPISupported('geolocation')) {
-                    throw new Error('Geolocation API non supportata');
+                    throw new Error(t('permessi.nonSupportata'));
                 }
 
                 // Opzioni ottimizzate per massima precisione
@@ -164,9 +177,9 @@
 
             } catch (error) {
                 logger.error('[fingerprint-permissions] Errore geolocation:', error);
-                resultContainer.innerHTML = `<p class="error">Errore: ${FingerprintUtils.escapeHtml(error.message)}</p>`;
+                resultContainer.innerHTML = erroreHtml(error.message);
                 button.disabled = false;
-                button.textContent = 'Richiedi Posizione GPS';
+                etichetta(button, 'permessi.geo.pulsante');
             }
         },
 
@@ -179,70 +192,44 @@
 
             // Mostra immediatamente i dati tecnici
             container.innerHTML = `
-                <h4>Posizione Rilevata</h4>
+                <h4>${esc(t('permessi.geo.rilevata'))}</h4>
                 <dl>
-                    <dt>Coordinate:</dt>
-                    <dd>${FingerprintUtils.formatCoordinates(latitude, longitude)}</dd>
-                    <dt>Accuratezza:</dt>
-                    <dd>${accuracy.toFixed(0)} metri ${PermissionsManager.getAccuracyQuality(accuracy)}</dd>
-                    <dt>Altitudine:</dt>
-                    <dd>${altitude ? `${altitude.toFixed(1)} m` : 'Non disponibile'}</dd>
-                    <dt>Timestamp:</dt>
-                    <dd>${FingerprintUtils.formatTimestamp(new Date(position.timestamp))}</dd>
+                    <dt>${esc(t('permessi.geo.coordinate'))}</dt>
+                    <dd>${esc(FingerprintUtils.formatCoordinates(latitude, longitude))}</dd>
+                    <dt>${esc(t('permessi.geo.accuratezza'))}</dt>
+                    <dd>${esc(t('permessi.geo.metri', { n: accuracy.toFixed(0) }))} ${esc(PermissionsManager.getAccuracyQuality(accuracy))}</dd>
+                    <dt>${esc(t('permessi.geo.altitudine'))}</dt>
+                    <dd>${altitude ? `${altitude.toFixed(1)} m` : esc(t('valore.nonDisponibile'))}</dd>
+                    <dt>${esc(t('permessi.geo.ora'))}</dt>
+                    <dd>${esc(FingerprintUtils.formatTimestamp(new Date(position.timestamp)))}</dd>
                 </dl>
-                <p><em>Recupero indirizzo...</em></p>
+                <p class="geo-attesa"><em>${esc(t('permessi.geo.recupero'))}</em></p>
             `;
+            const attesa = container.querySelector('.geo-attesa');
 
             // Reverse geocoding per ottenere indirizzo
             try {
                 const address = await PermissionsManager.reverseGeocode(latitude, longitude);
-                
-                // Aggiorna con indirizzo completo
-                let addressHtml = '<h4>Indirizzo Stimato</h4><dl>';
-                
-                if (address.road) {
-                    addressHtml += `<dt>Via:</dt><dd>${FingerprintUtils.escapeHtml(address.road)}</dd>`;
-                }
-                
-                if (address.postcode) {
-                    addressHtml += `<dt>CAP:</dt><dd>${FingerprintUtils.escapeHtml(address.postcode)}</dd>`;
-                }
-                
-                if (address.city || address.town || address.village) {
-                    const cityName = address.city || address.town || address.village;
-                    addressHtml += `<dt>Città:</dt><dd>${FingerprintUtils.escapeHtml(cityName)}</dd>`;
-                }
-                
-                if (address.municipality && address.municipality !== (address.city || address.town)) {
-                    addressHtml += `<dt>Comune:</dt><dd>${FingerprintUtils.escapeHtml(address.municipality)}</dd>`;
-                }
-                
-                if (address.county) {
-                    addressHtml += `<dt>Provincia:</dt><dd>${FingerprintUtils.escapeHtml(address.county)}</dd>`;
-                }
-                
-                if (address.state) {
-                    addressHtml += `<dt>Regione:</dt><dd>${FingerprintUtils.escapeHtml(address.state)}</dd>`;
-                }
-                
-                if (address.country) {
-                    addressHtml += `<dt>Nazione:</dt><dd>${FingerprintUtils.escapeHtml(address.country)}</dd>`;
-                }
-                
-                addressHtml += '</dl>';
-                
-                // Aggiungi indirizzo dopo le coordinate
-                const currentContent = container.innerHTML.replace('<p><em>Recupero indirizzo...</em></p>', '');
-                container.innerHTML = currentContent + addressHtml;
-                
+                const cityName = address.city || address.town || address.village;
+                const righe = [
+                    ['via', address.road],
+                    ['cap', address.postcode],
+                    ['citta', cityName],
+                    ['comune', address.municipality !== (address.city || address.town) ? address.municipality : null],
+                    ['provincia', address.county],
+                    ['regione', address.state],
+                    ['nazione', address.country]
+                ].filter(([, valore]) => valore);
+
+                attesa.outerHTML = `<h4>${esc(t('permessi.geo.indirizzo'))}</h4><dl>`
+                    + righe.map(([voce, valore]) => `<dt>${esc(t(`permessi.geo.${voce}`))}</dt><dd>${esc(valore)}</dd>`).join('')
+                    + '</dl>';
             } catch (geocodeError) {
                 logger.warn('[fingerprint-permissions] Reverse geocoding fallito:', geocodeError);
-                const currentContent = container.innerHTML.replace('<p><em>Recupero indirizzo...</em></p>', 
-                    '<p><em>Impossibile recuperare indirizzo (servizio temporaneamente non disponibile)</em></p>');
-                container.innerHTML = currentContent;
+                attesa.innerHTML = `<em>${esc(t('permessi.geo.indirizzoNonDisponibile'))}</em>`;
             }
 
-            button.textContent = 'Posizione Ottenuta';
+            etichetta(button, 'permessi.geo.ottenuta');
             button.classList.add('success');
 
             logger.log('[fingerprint-permissions] Geolocation successo:', { 
@@ -290,10 +277,10 @@
          * @returns {string} Emoji indicatore qualità
          */
         getAccuracyQuality: function(accuracy) {
-            if (accuracy < 50) return '🟢 (Ottima - GPS)';
-            if (accuracy < 500) return '🟡 (Buona - WiFi)';
-            if (accuracy < 5000) return '🟠 (Media - Triangolazione)';
-            return '🔴 (Bassa - IP/Rete)';
+            if (accuracy < 50) return `🟢 (${t('permessi.geo.qualitaGps')})`;
+            if (accuracy < 500) return `🟡 (${t('permessi.geo.qualitaWifi')})`;
+            if (accuracy < 5000) return `🟠 (${t('permessi.geo.qualitaCelle')})`;
+            return `🔴 (${t('permessi.geo.qualitaIp')})`;
         },
 
         /**
@@ -301,16 +288,15 @@
          */
         handleGeolocationError: function(error, container, button) {
             const errorMessages = {
-                1: 'Permesso negato dall\'utente',
-                2: 'Posizione non disponibile',
-                3: 'Timeout richiesta posizione'
+                1: 'permessi.negato',
+                2: 'permessi.geo.nonDisponibile',
+                3: 'permessi.geo.tempoScaduto'
             };
 
-            const message = errorMessages[error.code] || 'Errore sconosciuto';
-            container.innerHTML = `<p class="error">Errore: ${FingerprintUtils.escapeHtml(message)}</p>`;
-            
+            container.innerHTML = erroreHtml(t(errorMessages[error.code] || 'permessi.erroreSconosciuto'));
+
             button.disabled = false;
-            button.textContent = 'Riprova';
+            etichetta(button, 'permessi.stato.riprova');
 
             logger.warn('[fingerprint-permissions] Geolocation error:', error);
         },
@@ -324,8 +310,8 @@
 
             try {
                 button.disabled = true;
-                button.textContent = 'Richiesta in corso...';
-                resultContainer.innerHTML = '<p>Richiesta permessi camera e microfono...</p>';
+                etichetta(button, 'permessi.stato.richiesta');
+                resultContainer.innerHTML = `<p>${esc(t('permessi.media.attesa'))}</p>`;
 
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: true, 
@@ -350,16 +336,16 @@
                 if (error.name === 'NotFoundError') {
                     resultContainer.innerHTML = `
                         <div class="fp-warning">
-                            <strong>Nessun Dispositivo Trovato</strong>
-                            <p>Il sistema non ha rilevato telecamere o microfoni.</p>
+                            <strong>${esc(t('permessi.media.nessuno'))}</strong>
+                            <p>${esc(t('permessi.media.nessunoTesto'))}</p>
                         </div>
                     `;
                 } else {
-                    resultContainer.innerHTML = `<p class="error">Errore: ${FingerprintUtils.escapeHtml(error.message)}</p>`;
+                    resultContainer.innerHTML = erroreHtml(error.message);
                 }
-                
+
                 button.disabled = false;
-                button.textContent = 'Riprova';
+                etichetta(button, 'permessi.stato.riprova');
             }
         },
 
@@ -371,34 +357,20 @@
             const audioInputs = devices.filter(d => d.kind === 'audioinput');
             const audioOutputs = devices.filter(d => d.kind === 'audiooutput');
 
-            let html = '<h4>Dispositivi Rilevati</h4>';
+            let html = `<h4>${esc(t('permessi.media.rilevati'))}</h4>`;
 
-            if (videoInputs.length > 0) {
-                html += '<h5>Telecamere</h5><ul>';
-                videoInputs.forEach((device, i) => {
-                    html += `<li>${FingerprintUtils.escapeHtml(device.label || `Telecamera ${i + 1}`)}</li>`;
-                });
-                html += '</ul>';
-            }
-
-            if (audioInputs.length > 0) {
-                html += '<h5>Microfoni</h5><ul>';
-                audioInputs.forEach((device, i) => {
-                    html += `<li>${FingerprintUtils.escapeHtml(device.label || `Microfono ${i + 1}`)}</li>`;
-                });
-                html += '</ul>';
-            }
-
-            if (audioOutputs.length > 0) {
-                html += '<h5>Altoparlanti</h5><ul>';
-                audioOutputs.forEach((device, i) => {
-                    html += `<li>${FingerprintUtils.escapeHtml(device.label || `Altoparlante ${i + 1}`)}</li>`;
-                });
-                html += '</ul>';
-            }
+            // Gruppo con titolo e un nome di riserva numerato per i dispositivi senza nome
+            [[videoInputs, 'telecamere', 'telecamera'], [audioInputs, 'microfoni', 'microfono'],
+                [audioOutputs, 'altoparlanti', 'altoparlante']].forEach(([elenco, gruppo, singolo]) => {
+                if (elenco.length > 0) {
+                    html += `<h5>${esc(t(`permessi.media.${gruppo}`))}</h5><ul>`
+                        + elenco.map((device, i) => `<li>${esc(device.label || t(`permessi.media.${singolo}`, { n: i + 1 }))}</li>`).join('')
+                        + '</ul>';
+                }
+            });
 
             container.innerHTML = html;
-            button.textContent = 'Dispositivi Ottenuti';
+            etichetta(button, 'permessi.media.ottenuti');
             button.classList.add('success');
 
             logger.log('[fingerprint-permissions] Media devices dettagliati mostrati');
@@ -477,7 +449,7 @@
                     
                     // Notifica utente in caso di errore usando classe CSS
                     const errorMsg = document.createElement('p');
-                    errorMsg.textContent = 'Impossibile catturare snapshot: ' + error.message;
+                    errorMsg.textContent = t('permessi.media.fotoErrore', { messaggio: error.message });
                     errorMsg.className = 'error';
                     container.appendChild(errorMsg);
                 }
@@ -494,24 +466,23 @@
                 return;
             }
             if (!navigator.clipboard || !navigator.clipboard.readText) {
-                resultContainer.innerHTML = '<p class="error">Lettura degli appunti non supportata da questo browser</p>';
+                resultContainer.innerHTML = `<p class="error">${esc(t('permessi.nonSupportata'))}</p>`;
                 return;
             }
 
             try {
                 button.disabled = true;
-                button.textContent = 'Lettura in corso...';
+                etichetta(button, 'permessi.appunti.lettura');
                 const testo = await navigator.clipboard.readText();
                 resultContainer.innerHTML = testo
-                    ? `<h4>Testo negli Appunti</h4><pre class="clipboard-text">${FingerprintUtils.escapeHtml(testo)}</pre>`
-                    : '<p>Gli appunti sono vuoti o contengono solo un\'immagine.</p>';
-                button.textContent = 'Leggi di Nuovo';
+                    ? `<h4>${esc(t('permessi.appunti.testoLetto'))}</h4><pre class="clipboard-text">${esc(testo)}</pre>`
+                    : `<p>${esc(t('permessi.appunti.vuoti'))}</p>`;
+                etichetta(button, 'permessi.appunti.ancora');
                 button.classList.add('success');
             } catch (error) {
                 logger.warn('[fingerprint-permissions] Lettura appunti fallita:', error.name);
-                const messaggio = error.name === 'NotAllowedError' ? 'Permesso negato' : error.message;
-                resultContainer.innerHTML = `<p class="error">Errore: ${FingerprintUtils.escapeHtml(messaggio)}</p>`;
-                button.textContent = 'Riprova';
+                resultContainer.innerHTML = erroreHtml(error.name === 'NotAllowedError' ? t('permessi.negato') : error.message);
+                etichetta(button, 'permessi.stato.riprova');
             } finally {
                 button.disabled = false;
             }
@@ -526,12 +497,12 @@
 
             try {
                 button.disabled = true;
-                button.textContent = 'Attivazione sensori...';
+                etichetta(button, 'permessi.sensori.attivazione');
 
                 if (typeof DeviceMotionEvent.requestPermission === 'function') {
                     const permission = await DeviceMotionEvent.requestPermission();
                     if (permission !== 'granted') {
-                        throw new Error('Permesso sensori negato');
+                        throw new Error(t('permessi.negato'));
                     }
                 }
 
@@ -539,9 +510,9 @@
 
             } catch (error) {
                 logger.error('[fingerprint-permissions] Errore motion sensors:', error);
-                resultContainer.innerHTML = `<p class="error">Errore: ${FingerprintUtils.escapeHtml(error.message)}</p>`;
+                resultContainer.innerHTML = erroreHtml(error.message);
                 button.disabled = false;
-                button.textContent = 'Riprova';
+                etichetta(button, 'permessi.stato.riprova');
             }
         },
 
@@ -549,24 +520,20 @@
          * Avvia tracking movimento in tempo reale
          */
         startMotionTracking: function(container, button) {
+            const attesa = esc(t('permessi.sensori.attesa'));
+            const riga = (voce, id) => `<dt>${esc(t(`permessi.sensori.${voce}`))}</dt><dd id="${id}">${attesa}</dd>`;
             container.innerHTML = `
-                <h4>Sensori Attivi</h4>
+                <h4>${esc(t('permessi.sensori.attivi'))}</h4>
                 <dl>
-                    <dt>Orientamento Alpha:</dt>
-                    <dd id="motion-alpha">In attesa...</dd>
-                    <dt>Orientamento Beta:</dt>
-                    <dd id="motion-beta">In attesa...</dd>
-                    <dt>Orientamento Gamma:</dt>
-                    <dd id="motion-gamma">In attesa...</dd>
-                    <dt>Accelerazione X:</dt>
-                    <dd id="motion-accel-x">In attesa...</dd>
-                    <dt>Accelerazione Y:</dt>
-                    <dd id="motion-accel-y">In attesa...</dd>
-                    <dt>Accelerazione Z:</dt>
-                    <dd id="motion-accel-z">In attesa...</dd>
+                    ${riga('alpha', 'motion-alpha')}
+                    ${riga('beta', 'motion-beta')}
+                    ${riga('gamma', 'motion-gamma')}
+                    ${riga('accelX', 'motion-accel-x')}
+                    ${riga('accelY', 'motion-accel-y')}
+                    ${riga('accelZ', 'motion-accel-z')}
                 </dl>
-                <button type="button" id="stop-motion-tracking">Interrompi Tracking</button>
-                <p><strong>Nota:</strong> Visualizzazione 3D con Three.js in sviluppo</p>
+                <button type="button" id="stop-motion-tracking">${esc(t('permessi.sensori.interrompi'))}</button>
+                <p>${esc(t('permessi.sensori.nota3d'))}</p>
             `;
 
             const orientationHandler = (event) => {
@@ -590,12 +557,12 @@
             stopButton.addEventListener('click', () => {
                 window.removeEventListener('deviceorientation', orientationHandler);
                 window.removeEventListener('devicemotion', motionHandler);
-                container.innerHTML = '<p>Tracking interrotto</p>';
+                container.innerHTML = `<p>${esc(t('permessi.sensori.interrotto'))}</p>`;
                 button.disabled = false;
-                button.textContent = 'Riattiva Sensori';
+                etichetta(button, 'permessi.sensori.riattiva');
             });
 
-            button.textContent = 'Sensori Attivi';
+            etichetta(button, 'permessi.sensori.attivi');
             button.classList.add('success');
 
             logger.log('[fingerprint-permissions] Motion tracking avviato');
@@ -610,11 +577,11 @@
 
             try {
                 button.disabled = true;
-                button.textContent = 'Richiesta in corso...';
+                etichetta(button, 'permessi.stato.richiesta');
 
                 // Verifica supporto API (non disponibile su mobile)
                 if (!navigator.mediaDevices || typeof navigator.mediaDevices.getDisplayMedia !== 'function') {
-                    throw new Error('Screen Capture non supportata su questo dispositivo (solo desktop)');
+                    throw new Error(t('permessi.schermo.soloComputer'));
                 }
 
                 const stream = await navigator.mediaDevices.getDisplayMedia({ 
@@ -627,14 +594,9 @@
             } catch (error) {
                 logger.error('[fingerprint-permissions] Errore screen capture:', error);
                 
-                let errorMessage = error.message;
-                if (error.name === 'NotAllowedError') {
-                    errorMessage = 'Permesso negato o condivisione annullata';
-                }
-                
-                resultContainer.innerHTML = `<p class="error">Errore: ${FingerprintUtils.escapeHtml(errorMessage)}</p>`;
+                resultContainer.innerHTML = erroreHtml(error.name === 'NotAllowedError' ? t('permessi.schermo.annullata') : error.message);
                 button.disabled = false;
-                button.textContent = 'Riprova';
+                etichetta(button, 'permessi.stato.riprova');
             }
         },
 
@@ -649,22 +611,23 @@
             video.style.border = '2px solid var(--color-error)';
 
             const stopButton = document.createElement('button');
-            stopButton.textContent = 'Interrompi Condivisione';
+            stopButton.textContent = t('permessi.schermo.interrompi');
             stopButton.type = 'button';
             stopButton.style.marginTop = '10px';
 
             stopButton.addEventListener('click', () => {
                 stream.getTracks().forEach(track => track.stop());
-                container.innerHTML = '<p>Condivisione schermo interrotta</p>';
+                container.innerHTML = `<p>${esc(t('permessi.schermo.interrotta'))}</p>`;
                 button.disabled = false;
-                button.textContent = 'Riavvia Condivisione';
+                etichetta(button, 'permessi.schermo.riavvia');
             });
 
-            container.innerHTML = '<h4>Anteprima Screen Capture</h4><div class="fp-warning"><strong>Attenzione:</strong> Stai condividendo il tuo schermo. Tutto ciò che è visibile può essere registrato.</div>';
+            container.innerHTML = `<h4>${esc(t('permessi.schermo.anteprima'))}</h4>`
+                + `<div class="fp-warning"><strong>${esc(t('permessi.schermo.attenzione'))}</strong> ${esc(t('permessi.schermo.avviso'))}</div>`;
             container.appendChild(video);
             container.appendChild(stopButton);
 
-            button.textContent = 'Condivisione Attiva';
+            etichetta(button, 'permessi.schermo.attiva');
             button.classList.add('success');
 
             logger.log('[fingerprint-permissions] Screen capture avviato');

@@ -69,7 +69,7 @@
         formatTimestamp: function(timestamp) {
             try {
                 const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
-                return date.toLocaleString('it-IT');
+                return date.toLocaleString(window.I18n.getLanguage());
             } catch (error) {
                 return 'Data non valida';
             }
@@ -113,11 +113,11 @@
          */
         formatCoordinates: function(lat, lon) {
             if (!this.validateCoordinates(lat, lon)) {
-                return 'Coordinate non valide';
+                return window.I18n.t('permessi.geo.coordinateNonValide');
             }
             
             const latDir = lat >= 0 ? 'N' : 'S';
-            const lonDir = lon >= 0 ? 'E' : 'O';
+            const lonDir = lon >= 0 ? 'E' : window.I18n.t('permessi.geo.ovest');
             
             return `${Math.abs(lat).toFixed(6)}${latDir}, ${Math.abs(lon).toFixed(6)}${lonDir}`;
         },

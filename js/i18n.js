@@ -10,8 +10,21 @@
 (function() {
     'use strict';
 
+    const STORAGE_KEY = 'df.language';
+    const LINGUE = ['it', 'en'];
+
     let language = 'it';
     let strings = {};
+
+    // Italiano se non c'e' una scelta salvata: la lingua del browser non conta
+    function linguaSalvata() {
+        try {
+            const salvata = localStorage.getItem(STORAGE_KEY);
+            return LINGUE.includes(salvata) ? salvata : 'it';
+        } catch (e) {
+            return 'it';
+        }
+    }
 
     /**
      * Messaggio da tradurre quando si mostra: chi raccoglie i dati non dipende dalla lingua
@@ -52,7 +65,7 @@
         return key in strings;
     }
 
-    /** Carica la lingua e aggiorna i testi statici marcati con data-i18n */
+    /** Carica la lingua e aggiorna i testi statici marcati con data-i18n e il pulsante */
     async function setLanguage(code) {
         const response = await fetch(`i18n/${code}.json`);
         strings = await response.json();
@@ -61,12 +74,32 @@
         document.querySelectorAll('[data-i18n]').forEach(node => {
             node.textContent = t(node.dataset.i18n);
         });
+
+        // Il pulsante mostra la lingua verso cui si passa
+        const pulsante = document.getElementById('language-toggle');
+        const prossima = code === 'it' ? 'en' : 'it';
+        pulsante.textContent = prossima.toUpperCase();
+        pulsante.dataset.flag = prossima;
+        pulsante.title = t('lingua.passa');
+        pulsante.setAttribute('aria-label', t('lingua.passa'));
     }
+
+    // Al cambio gli altri script ridisegnano i loro testi con l'evento df:lingua
+    document.getElementById('language-toggle').addEventListener('click', async () => {
+        const prossima = language === 'it' ? 'en' : 'it';
+        await setLanguage(prossima);
+        try {
+            localStorage.setItem(STORAGE_KEY, prossima);
+        } catch (e) {
+            // Senza localStorage la scelta vale fino al ricaricamento
+        }
+        document.dispatchEvent(new Event('df:lingua'));
+    });
 
     window.I18n = {
         t, m, has, resolve,
         getLanguage: () => language,
         // Gli altri script aspettano questa promessa prima di scrivere testi
-        ready: setLanguage(language)
+        ready: setLanguage(linguaSalvata())
     };
 })();

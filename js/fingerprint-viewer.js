@@ -1936,6 +1936,13 @@
         }
     }
 
+    // Cambio lingua: si ridisegna dai dati gia' raccolti, senza rifare analisi e speed test
+    document.addEventListener('df:lingua', () => {
+        if (cachedFingerprint && document.querySelector('[data-sezione]')) {
+            displayFingerprint(cachedFingerprint);
+        }
+    });
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

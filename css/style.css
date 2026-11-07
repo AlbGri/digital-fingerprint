@@ -185,6 +185,47 @@
         }
     }
 
+    /* Barra in alto: pulsante della lingua */
+    .top-bar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-block-end: var(--spacing-md);
+    }
+
+    /* Mostra la lingua verso cui si passa: bandiera disegnata qui, non emoji (su Windows diventa due lettere) */
+    .language-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4em;
+        white-space: nowrap;
+        font: inherit;
+        font-weight: 600;
+        padding: 4px 10px;
+        color: var(--color-text);
+        background: var(--color-body-bg);
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius);
+    }
+
+    .language-toggle::before {
+        content: '';
+        width: 1.4em;
+        height: 0.93em;
+        border-radius: 2px;
+        box-shadow: 0 0 0 1px rgb(128 128 128 / 0.45);
+        background: center / cover no-repeat;
+    }
+
+    .language-toggle[data-flag='en']::before {
+        background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2060%2030'%3E%3CclipPath%20id%3D'c'%3E%3Cpath%20d%3D'M30%2015h30v15zv15H0zH0V0zV0h30z'%2F%3E%3C%2FclipPath%3E%3Cpath%20d%3D'M0%200v30h60V0z'%20fill%3D'%23012169'%2F%3E%3Cpath%20d%3D'M0%200l60%2030m0-30L0%2030'%20stroke%3D'%23fff'%20stroke-width%3D'6'%2F%3E%3Cpath%20d%3D'M0%200l60%2030m0-30L0%2030'%20clip-path%3D'url(%23c)'%20stroke%3D'%23C8102E'%20stroke-width%3D'4'%2F%3E%3Cpath%20d%3D'M30%200v30M0%2015h60'%20stroke%3D'%23fff'%20stroke-width%3D'10'%2F%3E%3Cpath%20d%3D'M30%200v30M0%2015h60'%20stroke%3D'%23C8102E'%20stroke-width%3D'6'%2F%3E%3C%2Fsvg%3E");
+    }
+
+    .language-toggle[data-flag='it']::before {
+        background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%203%202'%3E%3Cpath%20d%3D'M0%200h1v2H0z'%20fill%3D'%23009246'%2F%3E%3Cpath%20d%3D'M1%200h1v2H1z'%20fill%3D'%23fff'%2F%3E%3Cpath%20d%3D'M2%200h1v2H2z'%20fill%3D'%23CE2B37'%2F%3E%3C%2Fsvg%3E");
+    }
+
     /* Classe utility per nascondere elementi */
     .hidden {
         display: none;
