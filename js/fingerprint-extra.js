@@ -281,6 +281,38 @@
     }
 
     /**
+     * Blocco della pubblicita': un banner finto e uno script finto, entrambi dal sito stesso,
+     * con nomi che EasyList blocca su ogni sito (le esche classiche come adsbygoogle e
+     * googleads.js non ci sono piu'). Li ferma solo un blocco nel browser; uno nella rete, come
+     * Pi-hole, non li vede perche' non sono su domini pubblicitari.
+     */
+    async function bloccoPubblicita() {
+        const banner = document.createElement('div');
+        banner.className = 'AdSense AdSlot AdUnit esca-pubblicita';
+        document.body.appendChild(banner);
+        const script = document.createElement('script');
+        const scriptBloccato = new Promise(resolve => {
+            script.onload = () => resolve(false);
+            script.onerror = () => resolve(true);
+        });
+        script.src = 'js/flyad.js';
+        document.head.appendChild(script);
+
+        // Il tempo per nascondere il banner, che il bloccatore cerca dopo l'inserimento
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const bannerNascosto = banner.offsetHeight === 0 || getComputedStyle(banner).visibility === 'hidden';
+        banner.remove();
+        const bloccato = await scriptBloccato;
+        script.remove();
+
+        return [
+            { voce: 'esito', value: m(bannerNascosto || bloccato ? 'valore.bloccoAttivo' : 'valore.bloccoAssente') },
+            { voce: 'banner', value: m(bannerNascosto ? 'valore.nascosto' : 'valore.visibile') },
+            { voce: 'script', value: m(bloccato ? 'valore.bloccato' : 'valore.caricato') }
+        ];
+    }
+
+    /**
      * Layout della tastiera (Chrome ed Edge) e formati regionali: insieme dicono il paese meglio
      * della lingua dichiarata, che spesso resta inglese.
      */
@@ -407,6 +439,7 @@
         ['schedaVideo', schedaVideo],
         ['preferenze', preferenzeSistema],
         ['spazio', spazioBrowser],
+        ['pubblicita', bloccoPubblicita],
         ['tastiera', tastieraFormati],
         ['calcoli', calcoliEmoji],
         ['schermi', schermi]

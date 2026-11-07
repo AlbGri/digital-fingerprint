@@ -1172,7 +1172,7 @@
         ['dispositivo', ['browser', 'clientHints', 'hardware', 'schermi', 'schedaVideo', 'batteria',
             'multimedia', 'sensori']],
         ['impronte', ['canvas', 'font', 'voci', 'calcoli']],
-        ['abitudini', ['preferenze', 'spazio', 'comportamento']]
+        ['abitudini', ['preferenze', 'spazio', 'pubblicita', 'comportamento']]
     ];
 
     // Valori fissi scritti dalla raccolta: si traducono solo quando si mostrano, perche' alcuni
@@ -1372,6 +1372,7 @@
             calcoli: extra('calcoli'),
             preferenze: extra('preferenze'),
             spazio: extra('spazio'),
+            pubblicita: extra('pubblicita'),
             comportamento: [
                 { voce: 'mouse', value: comportamento ? raccolto(comportamento.mouseSpeed) : inCorso },
                 { voce: 'clic', value: comportamento ? comportamento.clickCount : inCorso },

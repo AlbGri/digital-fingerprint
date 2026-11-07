@@ -15,7 +15,8 @@ Senza chiedere niente, appena la pagina si apre:
 - IP pubblico e indirizzi che escono da WebRTC
 - batteria, presenza di telecamera, microfono e altoparlanti, sensori
 - Client Hints, font installati, voci di sintesi vocale, preferenze del sistema, spazio del
-  browser e navigazione privata, tastiera e formati regionali, calcoli ed emoji, schermi e finestra
+  browser e navigazione privata, blocco della pubblicita', tastiera e formati regionali, calcoli ed
+  emoji, schermi e finestra
 - movimenti del mouse, clic, scorrimento e tasti premuti sulla pagina
 - velocita' reale della connessione, scaricando fino a 10 MB dal sito stesso
 

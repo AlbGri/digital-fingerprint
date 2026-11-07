@@ -708,3 +708,13 @@
 #advanced-permissions-section .fp-warning {
     margin-top: 30px;
 }
+
+/* Banner finto per il blocco della pubblicita': fuori dalla vista ma con un'altezza, che un
+   bloccatore azzera nascondendolo */
+.esca-pubblicita {
+    position: absolute;
+    left: -10000px;
+    top: 0;
+    width: 1px;
+    height: 1px;
+}
