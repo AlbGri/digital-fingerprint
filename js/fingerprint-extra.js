@@ -4,15 +4,20 @@
  * Copyright: (c) 2025 Alberto G. - Licensed under AGPL-3.0
  * Created: 2026-11-06
  * Description: Tecniche di fingerprinting aggiuntive, senza permessi e senza server.
- *              Ogni raccolta restituisce una sezione {title, items} che fingerprint-viewer.js
- *              mostra insieme alle altre. Nessuna entra nell'ID persistente: cambierebbe
- *              l'ID di tutti e la cronologia delle visite ripartirebbe da zero.
+ *              Ogni raccolta restituisce le righe {voce, value} di una sezione, che
+ *              fingerprint-viewer.js mostra insieme alle altre. I testi fissi sono messaggi
+ *              I18n.m, tradotti quando si mostrano. Nessuna entra nell'ID persistente:
+ *              cambierebbe l'ID di tutti e la cronologia delle visite ripartirebbe da zero.
  */
 
 (function() {
     'use strict';
 
-    const NON_DISPONIBILE = 'Non disponibile';
+    const m = window.I18n.m;
+    const NON_DISPONIBILE = m('valore.nonDisponibile');
+    const SOLO_CHROMIUM = m('valore.soloChromeEdge');
+    const NESSUNO = m('valore.nessuno');
+    const NESSUNA = m('valore.nessuna');
     // Tetto per ogni raccolta: una API che non risponde non deve fermare la pagina
     const LIMITE_MS = 2000;
 
@@ -21,7 +26,7 @@
     }
 
     function siNo(valore) {
-        return valore ? 'Sì' : 'No';
+        return m(valore ? 'valore.si' : 'valore.no');
     }
 
     /**
@@ -31,7 +36,7 @@
     async function clientHints() {
         const uaData = navigator.userAgentData;
         if (!uaData || !uaData.getHighEntropyValues) {
-            return [{ label: 'Client Hints', value: NON_DISPONIBILE + ' (solo Chrome ed Edge)' }];
+            return [{ voce: 'clientHints', value: SOLO_CHROMIUM }];
         }
         const h = await uaData.getHighEntropyValues([
             'architecture', 'bitness', 'model', 'platformVersion', 'fullVersionList', 'formFactors'
@@ -42,7 +47,8 @@
         let sistema = `${h.platform} ${h.platformVersion}`;
         if (h.platform === 'Windows') {
             const major = parseInt(h.platformVersion, 10);
-            sistema += major >= 13 ? ' (Windows 11)' : major > 0 ? ' (Windows 10)' : ' (Windows 7 o 8)';
+            const nome = major >= 13 ? 'Windows 11' : major > 0 ? 'Windows 10' : m('valore.windows7o8');
+            sistema = m('valore.conNota', { valore: sistema, nota: nome });
         }
 
         // I marchi finti come "Not A(Brand" servono solo a confondere i parser: si tolgono
@@ -52,33 +58,34 @@
             .join(', ');
 
         return [
-            { label: 'Sistema Operativo Esatto', value: sistema },
-            { label: 'Modello Dispositivo', value: h.model || 'Non dichiarato (computer)' },
-            { label: 'Architettura CPU', value: h.architecture ? `${h.architecture} ${h.bitness} bit` : NON_DISPONIBILE },
-            { label: 'Versione Esatta Browser', value: versioni || NON_DISPONIBILE },
-            { label: 'Tipo Dispositivo', value: (h.formFactors || []).join(', ') || NON_DISPONIBILE }
+            { voce: 'sistema', value: sistema },
+            { voce: 'modello', value: h.model || m('valore.modelloComputer') },
+            { voce: 'architettura', value: h.architecture ? `${h.architecture} ${h.bitness} bit` : NON_DISPONIBILE },
+            { voce: 'versioni', value: versioni || NON_DISPONIBILE },
+            { voce: 'tipo', value: (h.formFactors || []).join(', ') || NON_DISPONIBILE }
         ];
     }
 
-    // Font da cercare, con l'indizio che danno se presenti. La scelta privilegia quelli
-    // legati a un sistema operativo o a un programma: sono loro a distinguere le persone.
+    // Font da cercare, con l'indizio che danno se presenti (chiave indizio.*). La scelta
+    // privilegia quelli legati a un sistema operativo o a un programma: sono loro a
+    // distinguere le persone.
     const FONT_CANDIDATI = [
-        ['Segoe UI', 'Windows'], ['Segoe Fluent Icons', 'Windows 11'],
-        ['Bahnschrift', 'Windows 10 o successivo'], ['Cascadia Code', 'Windows 11 o Windows Terminal'],
-        ['Calibri', 'Microsoft Office o Windows'], ['Aptos', 'Microsoft 365 recente'],
-        ['Century Gothic', 'Microsoft Office'], ['Garamond', 'Microsoft Office'],
-        ['Book Antiqua', 'Microsoft Office'], ['Cambria', ''], ['Consolas', ''], ['Candara', ''],
+        ['Segoe UI', 'windows'], ['Segoe Fluent Icons', 'windows11'],
+        ['Bahnschrift', 'windows10'], ['Cascadia Code', 'windowsTerminal'],
+        ['Calibri', 'officeWindows'], ['Aptos', 'microsoft365'],
+        ['Century Gothic', 'office'], ['Garamond', 'office'],
+        ['Book Antiqua', 'office'], ['Cambria', ''], ['Consolas', ''], ['Candara', ''],
         ['Gabriola', ''], ['Malgun Gothic', ''], ['Yu Gothic', ''],
-        ['Helvetica Neue', 'macOS o iOS'], ['Menlo', 'macOS'], ['Monaco', 'macOS'],
-        ['Avenir', 'macOS o iOS'], ['Futura', 'macOS o iOS'], ['Gill Sans', 'macOS o iOS'],
-        ['PingFang SC', 'macOS o iOS'],
-        ['DejaVu Sans', 'Linux'], ['Liberation Sans', 'Linux o LibreOffice'], ['Ubuntu', 'Ubuntu'],
-        ['Cantarell', 'Linux con GNOME'], ['Noto Sans', 'Linux o Android'],
-        ['Roboto', 'Android o ChromeOS'], ['Droid Sans', 'Android'],
-        ['Linux Libertine G', 'LibreOffice'], ['Carlito', 'LibreOffice'], ['Caladea', 'LibreOffice'],
-        ['Myriad Pro', 'programmi Adobe'], ['Minion Pro', 'programmi Adobe'],
-        ['Fira Code', 'strumenti da programmatore'], ['JetBrains Mono', 'programmi JetBrains'],
-        ['Source Code Pro', 'strumenti da programmatore'],
+        ['Helvetica Neue', 'macosIos'], ['Menlo', 'macos'], ['Monaco', 'macos'],
+        ['Avenir', 'macosIos'], ['Futura', 'macosIos'], ['Gill Sans', 'macosIos'],
+        ['PingFang SC', 'macosIos'],
+        ['DejaVu Sans', 'linux'], ['Liberation Sans', 'linuxLibreoffice'], ['Ubuntu', 'ubuntu'],
+        ['Cantarell', 'gnome'], ['Noto Sans', 'linuxAndroid'],
+        ['Roboto', 'androidChromeos'], ['Droid Sans', 'android'],
+        ['Linux Libertine G', 'libreoffice'], ['Carlito', 'libreoffice'], ['Caladea', 'libreoffice'],
+        ['Myriad Pro', 'adobe'], ['Minion Pro', 'adobe'],
+        ['Fira Code', 'programmatori'], ['JetBrains Mono', 'jetbrains'],
+        ['Source Code Pro', 'programmatori'],
         ['Open Sans', ''], ['Lato', ''], ['Arial', ''], ['Times New Roman', ''], ['Courier New', ''],
         ['Verdana', ''], ['Georgia', ''], ['Comic Sans MS', ''], ['Impact', ''], ['Tahoma', ''],
         ['Trebuchet MS', '']
@@ -107,10 +114,10 @@
         const indizi = [...new Set(trovati.map(([, indizio]) => indizio).filter(Boolean))];
 
         return [
-            { label: 'Font Trovati', value: `${trovati.length} su ${FONT_CANDIDATI.length} cercati` },
-            { label: 'Elenco', value: trovati.map(([nome]) => nome).join(', ') || 'Nessuno' },
-            { label: 'Indizi Dedotti', value: indizi.join('; ') || 'Nessuno' },
-            { label: 'Impronta Font', value: hash(trovati.map(([nome]) => nome).join(',')) }
+            { voce: 'trovati', value: m('sezione.font.trovatiValore', { n: trovati.length, totale: FONT_CANDIDATI.length }) },
+            { voce: 'elenco', value: trovati.map(([nome]) => nome).join(', ') || NESSUNO },
+            { voce: 'indizi', value: indizi.length ? indizi.map(i => m(`indizio.${i}`)) : NESSUNO },
+            { voce: 'impronta', value: hash(trovati.map(([nome]) => nome).join(',')) }
         ];
     }
 
@@ -121,7 +128,7 @@
     async function vociSintesi() {
         const synth = window.speechSynthesis;
         if (!synth) {
-            return [{ label: 'Sintesi Vocale', value: NON_DISPONIBILE }];
+            return [{ voce: 'sintesi', value: NON_DISPONIBILE }];
         }
         const voci = await new Promise(resolve => {
             const subito = synth.getVoices();
@@ -136,21 +143,21 @@
         const locali = voci.filter(v => v.localService);
         const lingue = [...new Set(voci.map(v => v.lang))];
         const nomi = locali.map(v => v.name).join(' ');
-        let indizio = 'Nessuno';
+        let indizio = NESSUNO;
         if (/Microsoft/.test(nomi)) {
             indizio = 'Windows';
         } else if (voci.some(v => /com\.apple/.test(v.voiceURI))) {
-            indizio = 'macOS o iOS';
+            indizio = m('indizio.macosIos');
         } else if (/espeak/i.test(nomi)) {
             indizio = 'Linux';
         }
 
         return [
-            { label: 'Voci Installate', value: `${locali.length} sul dispositivo, ${voci.length - locali.length} online` },
-            { label: 'Voci del Sistema', value: locali.map(v => v.name).join(', ') || 'Nessuna' },
-            { label: 'Lingue delle Voci', value: `${lingue.length}: ${lingue.slice(0, 12).join(', ')}${lingue.length > 12 ? '...' : ''}` },
-            { label: 'Indizio sul Sistema', value: indizio },
-            { label: 'Impronta Voci', value: voci.length ? hash(voci.map(v => v.voiceURI).join(',')) : NON_DISPONIBILE }
+            { voce: 'installate', value: m('sezione.voci.installateValore', { locali: locali.length, online: voci.length - locali.length }) },
+            { voce: 'sistema', value: locali.map(v => v.name).join(', ') || NESSUNA },
+            { voce: 'lingue', value: `${lingue.length}: ${lingue.slice(0, 12).join(', ')}${lingue.length > 12 ? '...' : ''}` },
+            { voce: 'indizio', value: indizio },
+            { voce: 'impronta', value: voci.length ? hash(voci.map(v => v.voiceURI).join(',')) : NON_DISPONIBILE }
         ];
     }
 
@@ -171,23 +178,23 @@
                     limiti.push(`${chiave}=${adapter.limits[chiave]}`);
                 }
                 items.push(
-                    { label: 'Produttore GPU (WebGPU)', value: info.vendor || NON_DISPONIBILE },
-                    { label: 'Architettura GPU (WebGPU)', value: info.architecture || NON_DISPONIBILE },
-                    { label: 'Descrizione GPU (WebGPU)', value: info.description || info.device || 'Nascosta dal browser' },
-                    { label: 'Funzioni GPU Supportate', value: String(adapter.features.size) },
-                    { label: 'Impronta Limiti WebGPU', value: hash(limiti.join(',')) }
+                    { voce: 'produttore', value: info.vendor || NON_DISPONIBILE },
+                    { voce: 'architettura', value: info.architecture || NON_DISPONIBILE },
+                    { voce: 'descrizione', value: info.description || info.device || m('valore.nascostaDalBrowser') },
+                    { voce: 'funzioni', value: String(adapter.features.size) },
+                    { voce: 'improntaWebgpu', value: hash(limiti.join(',')) }
                 );
             } else {
-                items.push({ label: 'WebGPU', value: 'Nessuna scheda video disponibile' });
+                items.push({ voce: 'webgpu', value: m('valore.nessunaScheda') });
             }
         } else {
-            items.push({ label: 'WebGPU', value: NON_DISPONIBILE });
+            items.push({ voce: 'webgpu', value: NON_DISPONIBILE });
         }
 
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
         if (!gl) {
-            items.push({ label: 'WebGL Esteso', value: NON_DISPONIBILE });
+            items.push({ voce: 'webglEsteso', value: NON_DISPONIBILE });
             return items;
         }
         const estensioni = gl.getSupportedExtensions() || [];
@@ -200,11 +207,11 @@
         ].map(p => String(gl.getParameter(p)));
 
         items.push(
-            { label: 'Estensioni WebGL', value: String(estensioni.length) },
-            { label: 'Texture Massima', value: `${gl.getParameter(gl.MAX_TEXTURE_SIZE)} px` },
-            { label: 'Viewport Massimo', value: viewport ? `${viewport[0]} x ${viewport[1]} px` : NON_DISPONIBILE },
-            { label: 'Precisione Shader', value: precisione ? `${precisione.precision} bit` : NON_DISPONIBILE },
-            { label: 'Impronta Parametri WebGL', value: hash(parametri.concat(estensioni).join(',')) }
+            { voce: 'estensioni', value: String(estensioni.length) },
+            { voce: 'texture', value: `${gl.getParameter(gl.MAX_TEXTURE_SIZE)} px` },
+            { voce: 'viewport', value: viewport ? `${viewport[0]} x ${viewport[1]} px` : NON_DISPONIBILE },
+            { voce: 'precisione', value: precisione ? `${precisione.precision} bit` : NON_DISPONIBILE },
+            { voce: 'improntaWebgl', value: hash(parametri.concat(estensioni).join(',')) }
         );
 
         // Libera subito il contesto: il browser ne tiene aperti pochi per pagina
@@ -220,23 +227,35 @@
      * quelle di accessibilita', che restringono molto il gruppo di persone simili.
      */
     function preferenzeSistema() {
+        const si = m('valore.si');
+        const no = m('valore.no');
         // Primo valore che corrisponde, nell'ordine dato
         function query(caratteristica, valori) {
             const trovato = valori.find(([valore]) => window.matchMedia(`(${caratteristica}: ${valore})`).matches);
-            return trovato ? trovato[1] : 'Non rilevabile';
+            return trovato ? trovato[1] : m('valore.nonRilevabile');
         }
         return [
-            { label: 'Tema del Sistema', value: query('prefers-color-scheme', [['dark', 'Scuro'], ['light', 'Chiaro']]) },
-            { label: 'Movimento Ridotto', value: query('prefers-reduced-motion', [['reduce', 'Sì'], ['no-preference', 'No']]) },
-            { label: 'Contrasto', value: query('prefers-contrast', [['more', 'Alto'], ['less', 'Basso'], ['custom', 'Personalizzato'], ['no-preference', 'Normale']]) },
-            { label: 'Colori Forzati', value: query('forced-colors', [['active', 'Sì (contrasto elevato)'], ['none', 'No']]) },
-            { label: 'Trasparenza Ridotta', value: query('prefers-reduced-transparency', [['reduce', 'Sì'], ['no-preference', 'No']]) },
-            { label: 'Colori Invertiti', value: query('inverted-colors', [['inverted', 'Sì'], ['none', 'No']]) },
-            { label: 'Gamma Colori Schermo', value: query('color-gamut', [['rec2020', 'Rec. 2020'], ['p3', 'Display P3'], ['srgb', 'sRGB']]) },
-            { label: 'Schermo HDR', value: query('dynamic-range', [['high', 'Sì'], ['standard', 'No']]) },
-            { label: 'Puntatore Principale', value: query('pointer', [['fine', 'Mouse o penna'], ['coarse', 'Dito'], ['none', 'Nessuno']]) },
-            { label: 'Hover', value: query('hover', [['hover', 'Sì'], ['none', 'No']]) }
+            { voce: 'tema', value: query('prefers-color-scheme', [['dark', m('valore.scuro')], ['light', m('valore.chiaro')]]) },
+            { voce: 'movimento', value: query('prefers-reduced-motion', [['reduce', si], ['no-preference', no]]) },
+            { voce: 'contrasto', value: query('prefers-contrast', [['more', m('valore.alto')], ['less', m('valore.basso')], ['custom', m('valore.personalizzato')], ['no-preference', m('valore.normale')]]) },
+            { voce: 'coloriForzati', value: query('forced-colors', [['active', m('valore.contrastoElevato')], ['none', no]]) },
+            { voce: 'trasparenza', value: query('prefers-reduced-transparency', [['reduce', si], ['no-preference', no]]) },
+            { voce: 'coloriInvertiti', value: query('inverted-colors', [['inverted', si], ['none', no]]) },
+            { voce: 'gamma', value: query('color-gamut', [['rec2020', 'Rec. 2020'], ['p3', 'Display P3'], ['srgb', 'sRGB']]) },
+            { voce: 'hdr', value: query('dynamic-range', [['high', si], ['standard', no]]) },
+            { voce: 'puntatore', value: query('pointer', [['fine', m('valore.mouse')], ['coarse', m('valore.dito')], ['none', NESSUNO]]) },
+            { voce: 'hover', value: query('hover', [['hover', si], ['none', no]]) }
         ];
+    }
+
+    function storageDisponibile(tipo) {
+        try {
+            window[tipo].setItem('__storage_test__', 'test');
+            window[tipo].removeItem('__storage_test__');
+            return m('valore.disponibile');
+        } catch (e) {
+            return NON_DISPONIBILE;
+        }
     }
 
     /**
@@ -251,11 +270,13 @@
             quota = (await navigator.storage.estimate()).quota;
         }
         const privata = /Firefox/.test(navigator.userAgent) && !('serviceWorker' in navigator)
-            ? 'Probabile (service worker assenti)'
-            : 'Non rilevata';
+            ? m('valore.privataProbabile')
+            : m('valore.nonRilevata');
         return [
-            { label: 'Quota Concessa al Sito', value: quota ? window.FingerprintUtils.formatBytes(quota) : NON_DISPONIBILE },
-            { label: 'Navigazione Privata', value: privata }
+            { voce: 'quota', value: quota ? window.FingerprintUtils.formatBytes(quota) : NON_DISPONIBILE },
+            { voce: 'privata', value: privata },
+            { voce: 'localStorage', value: storageDisponibile('localStorage') },
+            { voce: 'sessionStorage', value: storageDisponibile('sessionStorage') }
         ];
     }
 
@@ -271,38 +292,39 @@
             const q = mappa.get('KeyQ');
             const y = mappa.get('KeyY');
             const pv = mappa.get('Semicolon');
-            let layout = `Altro (tasto ; = "${pv}")`;
+            let layout = m('tastiera.altro', { tasto: pv });
             if (q === 'a') {
-                layout = 'AZERTY (francese o belga)';
+                layout = m('tastiera.azerty');
             } else if (y === 'z') {
-                layout = 'QWERTZ (tedesca o dell\'Europa centrale)';
+                layout = m('tastiera.qwertz');
             } else if (pv === 'ò') {
-                layout = 'QWERTY italiana';
+                layout = m('tastiera.italiana');
             } else if (pv === 'ñ') {
-                layout = 'QWERTY spagnola';
+                layout = m('tastiera.spagnola');
             } else if (pv === 'ö') {
-                layout = 'QWERTY nordica';
+                layout = m('tastiera.nordica');
             } else if (pv === ';') {
-                layout = 'QWERTY inglese (USA o Regno Unito)';
+                layout = m('tastiera.inglese');
             }
             const campione = ['KeyQ', 'KeyW', 'KeyY', 'KeyZ', 'Semicolon', 'BracketLeft', 'Quote', 'Backquote']
                 .map(k => mappa.get(k) || '?').join(' ');
-            items.push({ label: 'Layout Tastiera', value: layout }, { label: 'Tasti Campione', value: campione });
+            items.push({ voce: 'layout', value: layout }, { voce: 'campione', value: campione });
         } else {
-            items.push({ label: 'Layout Tastiera', value: NON_DISPONIBILE + ' (solo Chrome ed Edge)' });
+            items.push({ voce: 'layout', value: SOLO_CHROMIUM });
         }
 
         const opzioni = Intl.DateTimeFormat().resolvedOptions();
         const ciclo = new Intl.DateTimeFormat(undefined, { hour: 'numeric' }).resolvedOptions().hourCycle;
         const coerente = opzioni.locale.split('-')[0] === navigator.language.split('-')[0];
         items.push(
-            { label: 'Lingua dei Formati', value: opzioni.locale },
-            { label: 'Coerente con la Lingua del Browser', value: coerente ? 'Sì' : 'No: i formati seguono un\'altra lingua' },
-            { label: 'Calendario', value: opzioni.calendar },
-            { label: 'Sistema Numerico', value: opzioni.numberingSystem },
-            { label: 'Orologio', value: ciclo === 'h11' || ciclo === 'h12' ? '12 ore' : '24 ore' },
-            { label: 'Data di Esempio', value: new Date(2025, 11, 31).toLocaleDateString() },
-            { label: 'Numero di Esempio', value: (1234567.89).toLocaleString() }
+            { voce: 'linguaFormati', value: opzioni.locale },
+            { voce: 'coerente', value: coerente ? m('valore.si') : m('valore.formatiAltraLingua') },
+            { voce: 'calendario', value: opzioni.calendar },
+            { voce: 'numerazione', value: opzioni.numberingSystem },
+            { voce: 'orologio', value: m(ciclo === 'h11' || ciclo === 'h12' ? 'valore.ore12' : 'valore.ore24') },
+            // Formati del browser, non della lingua della pagina: sono il dato raccolto
+            { voce: 'data', value: new Date(2025, 11, 31).toLocaleDateString() },
+            { voce: 'numero', value: (1234567.89).toLocaleString() }
         );
         return items;
     }
@@ -353,10 +375,10 @@
         const larghezze = EMOJI_VERSIONI.map(([, emoji]) => ctx.measureText(emoji).width);
 
         return [
-            { label: 'Impronta Calcoli', value: hash(valori.join(',')) },
-            { label: 'Esempio: tan(-1e300)', value: String(valori[0]) },
-            { label: 'Emoji Più Recenti Disegnate', value: supportate.length ? `Unicode ${supportate[supportate.length - 1][0]}` : 'Nessuna a colori' },
-            { label: 'Impronta Emoji', value: hash(larghezze.concat(larghezzaRiferimento).join(',')) }
+            { voce: 'impronta', value: hash(valori.join(',')) },
+            { voce: 'esempio', value: String(valori[0]) },
+            { voce: 'emoji', value: supportate.length ? `Unicode ${supportate[supportate.length - 1][0]}` : m('valore.nessunaColori') },
+            { voce: 'improntaEmoji', value: hash(larghezze.concat(larghezzaRiferimento).join(',')) }
         ];
     }
 
@@ -368,45 +390,47 @@
     function schermi() {
         const s = window.screen;
         return [
-            { label: 'Più Monitor', value: s.isExtended === undefined ? NON_DISPONIBILE + ' (solo Chrome ed Edge)' : siNo(s.isExtended) },
-            { label: 'Spazio Barre di Sistema', value: `${s.width - s.availWidth} x ${s.height - s.availHeight} px` },
-            { label: 'Origine Area Disponibile', value: s.availLeft === undefined ? NON_DISPONIBILE : `${s.availLeft}, ${s.availTop}` },
-            { label: 'Posizione Finestra', value: `${window.screenX}, ${window.screenY}` },
-            { label: 'Dimensione Finestra', value: `${window.outerWidth} x ${window.outerHeight} px` },
-            { label: 'Orientamento', value: s.orientation ? s.orientation.type : NON_DISPONIBILE }
+            { voce: 'piuMonitor', value: s.isExtended === undefined ? SOLO_CHROMIUM : siNo(s.isExtended) },
+            { voce: 'barre', value: `${s.width - s.availWidth} x ${s.height - s.availHeight} px` },
+            { voce: 'origine', value: s.availLeft === undefined ? NON_DISPONIBILE : `${s.availLeft}, ${s.availTop}` },
+            { voce: 'posizione', value: `${window.screenX}, ${window.screenY}` },
+            { voce: 'dimensione', value: `${window.outerWidth} x ${window.outerHeight} px` },
+            { voce: 'orientamento', value: s.orientation ? s.orientation.type : NON_DISPONIBILE }
         ];
     }
 
+    // Id della sezione (il data-sezione nella pagina) e raccolta che la riempie
     const RACCOLTE = [
-        ['Sistema e Dispositivo (Client Hints)', clientHints],
-        ['Font Installati', fontInstallati],
-        ['Voci di Sintesi Vocale', vociSintesi],
-        ['Scheda Video (WebGPU e WebGL)', schedaVideo],
-        ['Preferenze del Sistema', preferenzeSistema],
-        ['Spazio del Browser e Navigazione Privata', spazioBrowser],
-        ['Tastiera e Formati Regionali', tastieraFormati],
-        ['Calcoli ed Emoji', calcoliEmoji],
-        ['Schermi e Finestra', schermi]
+        ['clientHints', clientHints],
+        ['font', fontInstallati],
+        ['voci', vociSintesi],
+        ['schedaVideo', schedaVideo],
+        ['preferenze', preferenzeSistema],
+        ['spazio', spazioBrowser],
+        ['tastiera', tastieraFormati],
+        ['calcoli', calcoliEmoji],
+        ['schermi', schermi]
     ];
 
     /**
      * Esegue tutte le raccolte in parallelo. Una raccolta che fallisce o supera il tetto di
      * tempo mostra l'esito al posto dei valori, senza bloccare le altre.
-     * @returns {Promise<Array<{title: string, items: Array}>>}
+     * @returns {Promise<Object<string, Array>>} Righe per id di sezione
      */
     async function collect() {
-        return Promise.all(RACCOLTE.map(async ([title, raccogli]) => {
+        const sezioni = await Promise.all(RACCOLTE.map(async ([id, raccogli]) => {
             try {
                 const items = await Promise.race([
                     Promise.resolve().then(raccogli),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('tempo scaduto')), LIMITE_MS))
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), LIMITE_MS))
                 ]);
-                return { title, items };
+                return [id, items];
             } catch (error) {
-                window.logger.warn(`[fingerprint-extra] ${title}:`, error);
-                return { title, items: [{ label: 'Esito', value: `Non disponibile (${error.message})` }] };
+                window.logger.warn(`[fingerprint-extra] ${id}:`, error);
+                return [id, [{ etichetta: 'voce.esito', value: m('valore.nonDisponibileMotivo', { motivo: error.message }) }]];
             }
         }));
+        return Object.fromEntries(sezioni);
     }
 
     window.FingerprintExtra = { collect };

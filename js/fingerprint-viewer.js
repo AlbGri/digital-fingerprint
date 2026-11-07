@@ -49,8 +49,6 @@
             connectionType: getConnectionType(),
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             timezoneOffset: new Date().getTimezoneOffset(),
-            localStorage: checkStorageAvailable('localStorage'),
-            sessionStorage: checkStorageAvailable('sessionStorage'),
             timestamp: new Date().toISOString()
         };
     }
@@ -70,76 +68,19 @@
      * @returns {Object} Dati di rete o fallback
      */
     function getNetworkInformation() {
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        
-    if (!connection) {
-        // Rileva browser specifico per messaggio accurato
-        const ua = navigator.userAgent;
-        let reason = 'Non supportato';
-        
-        // Rileva iOS (qualsiasi browser)
-        if (/iPhone|iPad|iPod/i.test(ua)) {
-        reason = 'Non supportato (iOS)';
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if (!connection) {
+            // Firefox e Safari non hanno l'API: il browser si legge gia' nello user agent
+            logger.warn('[fingerprint-viewer] Network Information API non supportata');
+            return null;
         }
-        // Rileva Firefox (Desktop e Mobile)
-        else if (/Firefox/i.test(ua)) {
-        reason = 'Non supportato (Firefox)';
-        }
-        // Rileva Safari Desktop (non iOS)
-        else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) {
-        reason = 'Non supportato (Safari)';
-        }
-        // Rileva Edge Legacy (pre-Chromium)
-        else if (/Edge\//i.test(ua)) {
-        reason = 'Non supportato (Edge Legacy)';
-        }
-        // Rileva Opera Mini
-        else if (/Opera Mini/i.test(ua)) {
-        reason = 'Non supportato (Opera Mini)';
-        }
-        // Rileva IE11
-        else if (/Trident/i.test(ua)) {
-        reason = 'Non supportato (IE11)';
-        }
-        // Fallback generico (browser sconosciuti)
-        else {
-        reason = 'Non supportato (Browser)';
-        }
-        
-        logger.warn('network-info] Network Information API non supportata: ${reason}');
         return {
-            effectiveType: reason,
-            downlink: reason,
-            rtt: reason,
-            saveData: reason,
-            type: reason,
-            supported: false
+            effectiveType: connection.effectiveType,
+            downlink: connection.downlink,
+            rtt: connection.rtt,
+            saveData: connection.saveData,
+            type: connection.type
         };
-    }
-    
-    return {
-        effectiveType: connection.effectiveType || 'Non disponibile',
-        downlink: connection.downlink !== undefined ? `${connection.downlink} Mbps` : 'Non disponibile',
-        rtt: connection.rtt !== undefined ? `${connection.rtt} ms` : 'Non disponibile',
-        saveData: connection.saveData ? 'Sì' : 'No',
-        type: connection.type || 'Non disponibile',
-        supported: true
-    };
-    }
-
-    /**
-     * Verifica disponibilita storage
-     */
-    function checkStorageAvailable(type) {
-        try {
-            const storage = window[type];
-            const testKey = '__storage_test__';
-            storage.setItem(testKey, 'test');
-            storage.removeItem(testKey);
-            return true;
-        } catch(e) {
-            return false;
-        }
     }
 
     /**
@@ -1161,11 +1102,9 @@
             window.removeEventListener('scroll', scrollHandler);
             document.removeEventListener('keydown', keyHandler);
 
-            const analysis = analyzeBehavioralData(behavioralData);
-            updateBehavioralDataInUI(analysis);
-            
             if (cachedFingerprint) {
-                cachedFingerprint.behavioralData = analysis;
+                cachedFingerprint.behavioralData = analyzeBehavioralData(behavioralData);
+                refreshSection('comportamento');
             }
         }, CONFIG.behaviorTrackingDuration);
     }
@@ -1210,69 +1149,6 @@
     }
 
     /**
-     * Aggiorna UI con dati comportamentali analizzati
-     * Usa selettore robusto che cerca specificamente la sezione Pattern Comportamentali
-     */
-    function updateBehavioralDataInUI(analysis) {
-        logger.log('[fingerprint-viewer] Tentativo aggiornamento UI comportamentale:', analysis);
-        
-        // Trova TUTTE le sezioni e cerca quella con titolo "Pattern Comportamentali"
-        const allSections = document.querySelectorAll('.fp-section');
-        let behavioralSection = null;
-        
-        allSections.forEach(section => {
-            const titleEl = section.querySelector('.fp-section-title');
-            if (titleEl && titleEl.textContent.includes('Pattern Comportamentali')) {
-                behavioralSection = section;
-            }
-        });
-        
-        if (!behavioralSection) {
-            logger.error('[fingerprint-viewer] Sezione Pattern Comportamentali NON trovata!');
-            return;
-        }
-        
-        const container = behavioralSection.querySelector('.fp-data-list');
-        if (!container) {
-            logger.error('[fingerprint-viewer] Container .fp-data-list NON trovato nella sezione!');
-            return;
-        }
-        
-        logger.log('[fingerprint-viewer] Container trovato, aggiornamento valori...');
-        
-        const items = container.querySelectorAll('.fp-data-item');
-        let updatedCount = 0;
-        
-        items.forEach(item => {
-            const label = item.querySelector('.fp-label')?.textContent;
-            const valueEl = item.querySelector('.fp-value');
-            
-            if (!valueEl) return;
-
-            switch(label) {
-                case 'Velocita Media Mouse':
-                    valueEl.textContent = analysis.mouseSpeed;
-                    updatedCount++;
-                    break;
-                case 'Click Totali':
-                    valueEl.textContent = analysis.clickCount;
-                    updatedCount++;
-                    break;
-                case 'Eventi Scroll':
-                    valueEl.textContent = analysis.scrollCount;
-                    updatedCount++;
-                    break;
-                case 'Pressioni Tasti':
-                    valueEl.textContent = analysis.keystrokeCount;
-                    updatedCount++;
-                    break;
-            }
-        });
-
-        logger.log(`[fingerprint-viewer] UI aggiornata: ${updatedCount} valori modificati`);
-    }
-
-    /**
      * Rileva il browser corrente dal user agent
      * Usato per tracking cronologia visite cross-browser
      * @returns {string} Nome del browser rilevato
@@ -1294,7 +1170,7 @@
      * Simula comportamento server-side per dimostrare tracking persistente
      * Salva cronologia visite con browser e timestamp per analisi pattern
      * @param {string} persistentID - ID univoco del dispositivo generato
-     * @returns {Object} Statistiche tracking con visitCount, history, firstVisit, lastVisit
+     * @returns {Object} Statistiche tracking con visitCount, history, firstVisit
      */
     function getTrackingHistory(persistentID) {
         const historyKey = `${CONFIG.trackingHistoryPrefix}${persistentID}`;
@@ -1310,16 +1186,10 @@
             history = [];
         }
         
-        /* Aggiungi visita corrente */
+        /* Aggiungi visita corrente: data ISO, la si formatta nella lingua scelta quando si mostra */
         const currentVisit = {
             browser: detectBrowser(),
-            timestamp: new Date().toLocaleString('it-IT', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            })
+            timestamp: new Date().toISOString()
         };
         
         history.push(currentVisit);
@@ -1338,89 +1208,36 @@
         return {
             visitCount: history.length,
             history: recentHistory,
-            firstVisit: history[0]?.timestamp || 'Oggi',
-            lastVisit: history[history.length - 1]?.timestamp || 'Oggi'
+            firstVisit: history[0].timestamp
         };
     }
 
+    // I nove valori dell'ID, con i bit stimati per ciascuno e la riga che li mostra. L'ordine
+    // conta: cambiarlo cambierebbe l'ID di tutti
+    const COMPONENTI_ID = {
+        canvasFingerprint: [16, 'sezione.canvas.canvas'],
+        audioFingerprint: [14, 'sezione.canvas.audio'],
+        webglRenderer: [10, 'sezione.canvas.webglRenderer'],
+        webglVendor: [3, 'sezione.canvas.webglVendor'],
+        webglVersion: [3, 'sezione.canvas.webglVersione'],
+        hardwareConcurrency: [4, 'sezione.hardware.core'],
+        colorDepth: [2, 'sezione.hardware.profondita'],
+        pixelRatio: [3, 'sezione.hardware.pixelRatio'],
+        platform: [2, 'sezione.browser.piattaforma']
+    };
+
     /**
-     * Genera ID persistente cross-sessione combinando componenti hardware stabili
-     * Questo ID rimane stabile anche dopo cancellazione cookie e cambiamenti minori
-     * 
-     * FILOSOFIA SELEZIONE COMPONENTI:
-     * Usa SOLO componenti che:
-     * 1. Sono estremamente stabili nel tempo (no batteria, IP, behavioral)
-     * 2. Identificano hardware specifico (GPU, CPU, audio)
-     * 3. Non cambiano con orientamento device (no screenResolution)
-     * 4. Non cambiano con VPN o viaggi (no timezone)
-     * 
-     * COMPONENTI SCELTI (10 totali):
-     * - Canvas/Audio fingerprint: Unici per combinazione HW+SW
-     * - WebGL info completo: GPU model + vendor + version + shading
-     * - Hardware specs stabili: CPU cores, color depth, pixel ratio
-     * - Platform: OS base (raramente cambia)
-     * 
-     * COMPONENTI ESCLUSI E PERCHE:
-     * - screenResolution: Cambia con orientamento mobile
-     * - timezone: Cambia con VPN o viaggi
-     * - userAgent: Troppo volatile (aggiornamenti browser frequenti)
-     * - IP: Cambia con rete/VPN
-     * - batteryLevel: Varia continuamente
-     * - behavioralData: Diverso ogni sessione
-     * 
-     * ENTROPIA STIMATA: ~58 bits = 1 su 288 quadrilioni
-     * Sufficiente per identificare univocamente ogni dispositivo sul pianeta
-     * 
+     * Genera l'ID del dispositivo dai nove valori di COMPONENTI_ID: valori che restano uguali
+     * da una visita all'altra, quindi niente IP, fuso, batteria, risoluzione (cambia ruotando il
+     * telefono) o user agent (cambia a ogni aggiornamento del browser).
+     * L'hash e' a 32 bit: con circa 77 mila dispositivi due hanno lo stesso ID con probabilita'
+     * del 50%, qualunque sia l'entropia dei valori di partenza.
+     *
      * @param {Object} fingerprint - Oggetto contenente tutti i dati fingerprint
-     * @returns {string} Hash persistente univoco del dispositivo (8 caratteri hex)
+     * @returns {string} Hash esadecimale a 32 bit
      */
     function generatePersistentID(fingerprint) {
-        const components = [
-            // Hash rendering grafico HTML5 Canvas (~16 bits entropy)
-            // Varia tra GPU diverse per anti-aliasing e sub-pixel rendering
-            // Cattura differenze hardware nella rasterizzazione grafica
-            fingerprint.canvasFingerprint || '',
-            
-            // Hash elaborazione segnale audio hardware (~14 bits entropy)
-            // Cattura differenze nei DSP e driver audio
-            // Unico per ogni combinazione scheda audio + driver
-            fingerprint.audioFingerprint || '',
-            
-            // Modello GPU esatto (~10 bits entropy)
-            // Esempio: ANGLE (NVIDIA, NVIDIA GeForce GTX 1050 Ti Direct3D11 vs_5_0 ps_5_0, D3D11)
-            // Uno dei componenti piu stabili e identificativi
-            fingerprint.webglRenderer || '',
-            
-            // Produttore GPU (~3 bits entropy)
-            // Esempio: Google Inc. (NVIDIA), Mozilla, WebKit
-            // Complementa renderer per identificazione completa GPU
-            fingerprint.webglVendor || '',
-            
-            // Versione WebGL supportata (~3 bits entropy)
-            // Esempio: WebGL 1.0, WebGL 2.0
-            // Identifica capacita rendering device
-            fingerprint.webglVersion || '',
-            
-            // Numero core CPU logici (~4 bits entropy)
-            // Valori comuni: 2, 4, 6, 8, 12, 16, 24, 32...
-            // Stabile nel tempo, identifica classe/modello CPU
-            fingerprint.hardwareConcurrency || '',
-            
-            // Profondita colore display (~2 bits entropy)
-            // Valori comuni: 24-bit, 32-bit (raramente 16-bit, 48-bit)
-            // Estremamente stabile, cambia solo con cambio monitor
-            fingerprint.colorDepth || '',
-            
-            // Pixel ratio dello schermo (~3 bits entropy)
-            // Valori comuni: 1, 1.25, 1.5, 2, 2.5, 3, 4
-            // Fisso per device specifico (es: Retina = 2, mobile high-end = 3)
-            fingerprint.pixelRatio || '',
-            
-            // Sistema operativo e architettura (~2 bits entropy)
-            // Valori: Win32, MacIntel, Linux x86_64, Linux armv7l
-            // Raramente cambia, identifica famiglia OS
-            fingerprint.platform || ''
-        ];
+        const components = Object.keys(COMPONENTI_ID).map(nome => fingerprint[nome] || '');
 
         // Join componenti con separatore pipe
         // Permette debug e analisi componenti individuali se necessario
@@ -1465,8 +1282,7 @@
             null,
             undefined,
             '0',
-            'non disponibile',
-            'Raccolta in corso...'
+            'non disponibile'
         ];
         
         // Primo controllo: valori generici sempre invalidi
@@ -1617,145 +1433,31 @@
     }
 
     /**
-     * Calcola unicita e entropia del fingerprint basandosi SOLO sui componenti
-     * effettivamente validi e informativi (esclude valori spoofed o placeholder).
-     * 
-     * IMPORTANTE: Questa funzione ora usa isComponentValid() per filtrare
-     * componenti con valori spoofed o non informativi prima di calcolare entropia.
-     * 
-     * METODOLOGIA CALCOLO ENTROPY:
-     * - Valori entropy basati su studi EFF Panopticlick e ricerche accademiche
-     * - Formula: Entropy totale (bits) = Somma entropy componenti VALIDI
-     * - Combinazioni teoriche = 2^entropy
-     * - Unicita = 1 / Combinazioni
-     * 
+     * Somma i bit stimati dei valori dell'ID che risultano validi (isComponentValid).
+     * La somma e' un limite massimo: i valori non sono indipendenti (scheda video, canvas e
+     * WebGL vanno insieme), quindi l'unicita' vera e' piu' bassa. I bit di COMPONENTI_ID sono
+     * stime dell'ordine di grandezza, non misure.
+     *
      * @param {Object} fingerprint - Oggetto contenente tutti i dati fingerprint
-     * @returns {Object} Metriche unicita e privacy con componenti validi
+     * @returns {{entropy: number, componentsPresent: number, componentsInvalid: Array}}
      */
     function calculateUniqueness(fingerprint) {
-        // Mappa dei 9 componenti usati in generatePersistentID con entropy stimato
-        const persistentComponents = {
-            canvasFingerprint: 16,      // 65,536 varianti GPU rendering
-            audioFingerprint: 14,       // 16,384 varianti audio processing
-            webglRenderer: 10,          // 1,024 modelli GPU comuni
-            webglVendor: 3,             // 8 vendor principali
-            webglVersion: 3,            // 8 versioni WebGL
-            hardwareConcurrency: 4,     // 16 configurazioni CPU
-            colorDepth: 2,              // 4 profondita colore
-            pixelRatio: 3,              // 8 pixel ratio comuni
-            platform: 2                 // 4 OS principali
-        };
-        
-        let totalEntropy = 0;
+        let entropy = 0;
         let componentsPresent = 0;
-        let componentsMissing = [];
-        let componentsInvalid = [];  // NUOVO: traccia componenti invalidi con motivo
-        
-        // Calcola entropy sommando solo componenti effettivamente validi
-        for (const [componentName, entropyBits] of Object.entries(persistentComponents)) {
+        const componentsInvalid = [];
+
+        for (const [componentName, [entropyBits]] of Object.entries(COMPONENTI_ID)) {
             const value = fingerprint[componentName];
-            
-            // MODIFICA PRINCIPALE: usa la nuova funzione di validazione rigorosa
-            const isValid = isComponentValid(componentName, value);
-            
-            if (isValid) {
-                // Componente valido: contribuisce all'entropia totale
-                totalEntropy += entropyBits;
+            if (isComponentValid(componentName, value)) {
+                entropy += entropyBits;
                 componentsPresent += 1;
-                
-                // Log dettagliato per componenti validi (utile per debug)
-                logger.log(`[fingerprint-viewer] [VALIDO] ${componentName}: "${value}" -> +${entropyBits} bits`);
             } else {
-                // Componente invalido: escluso dal calcolo entropia
-                componentsMissing.push(componentName);
-                componentsInvalid.push({
-                    component: componentName,
-                    value: value,
-                    expectedEntropy: entropyBits
-                });
-                
-                // Log warning per componenti esclusi (importante per utente)
-                logger.warn(`[fingerprint-viewer] [ESCLUSO] ${componentName}: "${value}" - Non contribuisce all'entropia`);
+                componentsInvalid.push({ component: componentName, value: value });
             }
         }
-        
-        // Log riepilogo componenti per debug
-        if (componentsMissing.length > 0) {
-            logger.warn(`[fingerprint-viewer] Componenti esclusi dal calcolo entropia: ${componentsMissing.join(', ')}`);
-        }
-        
-        // Calcola combinazioni teoriche totali: 2^entropy
-        const totalCombinations = Math.pow(2, totalEntropy);
-        
-        // Calcola dispositivi necessari per 50% probabilita di collision (Birthday Paradox)
-        const devicesFor50PercentCollision = Math.sqrt(2 * totalCombinations * Math.log(2));
-        
-        // Determina livello privacy basato su entropy totale REALE (non gonfiato)
-        let privacyLevel = 'Basso';
-        let privacyDescription = 'Facilmente tracciabile';
-        let privacyColor = 'var(--color-error)';  // Rosso
-        
-        if (totalEntropy >= 33) {
-            // 33+ bits: 1 su 8.5 miliardi (piu della popolazione mondiale)
-            privacyLevel = 'Basso';
-            privacyDescription = 'Praticamente unico - Altamente tracciabile';
-            privacyColor = 'var(--color-error)';
-        } else if (totalEntropy >= 20) {
-            // 20-32 bits: 1 su 1 milione - 8.5 miliardi
-            privacyLevel = 'Medio';
-            privacyDescription = 'Identificativo - Moderatamente tracciabile';
-            privacyColor = 'var(--color-warning)';  // Arancione
-        } else {
-            // <20 bits: Protezioni attive efficaci
-            privacyLevel = 'Alto';
-            privacyDescription = 'Difficilmente identificabile - Protezioni attive';
-            privacyColor = 'var(--color-success)';  // Verde
-        }
-        
-        // Formatta combinazioni per display leggibile
-        let combinationsFormatted;
-        if (totalCombinations >= 1e15) {
-            combinationsFormatted = `${(totalCombinations / 1e15).toFixed(2)} quadrilioni`;
-        } else if (totalCombinations >= 1e12) {
-            combinationsFormatted = `${(totalCombinations / 1e12).toFixed(2)} trilioni`;
-        } else if (totalCombinations >= 1e9) {
-            combinationsFormatted = `${(totalCombinations / 1e9).toFixed(2)} miliardi`;
-        } else if (totalCombinations >= 1e6) {
-            combinationsFormatted = `${(totalCombinations / 1e6).toFixed(2)} milioni`;
-        } else {
-            combinationsFormatted = totalCombinations.toLocaleString('it-IT');
-        }
-        
-        // Log metriche finali calcolate
-        logger.log(`[fingerprint-viewer] Entropia totale calcolata: ${totalEntropy.toFixed(1)} bits da ${componentsPresent}/9 componenti validi`);
-        logger.log(`[fingerprint-viewer] Livello privacy: ${privacyLevel} (${privacyDescription})`);
-        
-        // Ritorna oggetto con tutte le metriche
-        return {
-            // Metriche raw per eventuale processing ulteriore
-            entropy: totalEntropy,
-            combinations: totalCombinations,
-            devicesFor50Collision: devicesFor50PercentCollision,
-            componentsPresent: componentsPresent,
-            componentsMissing: componentsMissing,
-            componentsInvalid: componentsInvalid,  // NUOVO campo con dettagli componenti esclusi
-            
-            // Formattazione per UI display
-            entropyFormatted: `${totalEntropy.toFixed(1)} bits`,
-            combinationsFormatted: combinationsFormatted,
-            uniquenessText: `1 su ${Math.round(totalCombinations).toLocaleString('it-IT')}`,
-            devicesFor50Formatted: devicesFor50PercentCollision >= 1e6 
-                ? `${(devicesFor50PercentCollision / 1e6).toFixed(1)} milioni`
-                : devicesFor50PercentCollision >= 1e3
-                    ? `${(devicesFor50PercentCollision / 1e3).toFixed(0)} mila`
-                    : `${Math.round(devicesFor50PercentCollision)}`,
-            componentsText: `${componentsPresent}/9 componenti validi`,
-            
-            // Privacy assessment
-            privacyLevel: privacyLevel,
-            privacyDescription: privacyDescription,
-            privacyColor: privacyColor
-        };
+
+        logger.log(`[fingerprint-viewer] Entropia al massimo: ${entropy} bit da ${componentsPresent}/9 componenti validi`);
+        return { entropy, componentsPresent, componentsInvalid };
     }
 
     /**
@@ -1792,9 +1494,6 @@
             window.FingerprintExtra.collect()
         ]);
 
-        // Raccolta automatica dati Network Information API
-        const networkData = getNetworkInformation();
-        
         cachedFingerprint = {
             ...basicInfo,
             publicIP: publicIP,
@@ -1810,11 +1509,7 @@
             webglRenderer: webglData.renderer,
             webglVersion: webglData.version,
             webglShadingLanguageVersion: webglData.shadingLanguageVersion,
-            networkEffectiveType: networkData.effectiveType,
-            networkDownlink: networkData.downlink,
-            networkRtt: networkData.rtt,
-            networkSaveData: networkData.saveData,
-            networkType: networkData.type,
+            network: getNetworkInformation(),
             batteryLevel: 'Raccolta in corso...',
             batteryCharging: 'Raccolta in corso...',
             batteryChargingTime: 'Raccolta in corso...',
@@ -1824,7 +1519,7 @@
             mediaDevicesVideoInput: mediaDevices.videoInputCount,
             mediaDevicesAudioInput: mediaDevices.audioInputCount,
             mediaDevicesAudioOutput: mediaDevices.audioOutputCount,
-            mediaDevicesTotalCount: mediaDevices.totalDevices,
+            mediaDevicesLabels: mediaDevices.hasDetailedLabels,
             sensorDeviceMotion: deviceSensors.deviceMotionEvent,
             sensorDeviceOrientation: deviceSensors.deviceOrientationEvent,
             sensorAccelerometer: deviceSensors.accelerometer,
@@ -1869,7 +1564,7 @@
                 cachedFingerprint.batteryFirstVisitCharging = batteryInfo.firstVisit.charging;
                 }
 
-                updateBatteryInUI(batteryInfo);
+                refreshSection('batteria');
             } catch (error) {
                 const fallback = {
                 level: "Non disponibile",
@@ -1884,7 +1579,7 @@
                 cachedFingerprint.batteryChargingTime = fallback.chargingTime;
                 cachedFingerprint.batteryDischargingTime = fallback.dischargingTime;
 
-                updateBatteryInUI(fallback);
+                refreshSection('batteria');
                 logger.warn('[fingerprint-viewer] Errore o timeout batteria', error);
             }
             }, CONFIG.batteryDelay);
@@ -1893,358 +1588,274 @@
         return cachedFingerprint;
     }
 
+    // Gruppi e sezioni nell'ordine della pagina, dal piu' sorprendente al piu' tecnico. L'id
+    // della sezione e' il suo data-sezione e il prefisso delle sue chiavi nei dizionari
+    const GRUPPI = [
+        ['riconosce', ['visite', 'unicita']],
+        ['rete', ['ip', 'fuso', 'tastiera', 'reteDichiarata', 'reteMisurata']],
+        ['dispositivo', ['browser', 'clientHints', 'hardware', 'schermi', 'schedaVideo', 'batteria',
+            'multimedia', 'sensori']],
+        ['impronte', ['canvas', 'font', 'voci', 'calcoli']],
+        ['abitudini', ['preferenze', 'spazio', 'comportamento']]
+    ];
+
+    // Valori fissi scritti dalla raccolta: si traducono solo quando si mostrano, perche' alcuni
+    // entrano nell'ID e tradurli alla raccolta lo farebbe cambiare con la lingua
+    const VALORI_RACCOLTI = {
+        'Non disponibile': 'valore.nonDisponibile',
+        'non disponibile': 'valore.nonDisponibile',
+        'non specificato': 'valore.nonSpecificato',
+        'Disponibile': 'valore.disponibile',
+        'Errore': 'valore.errore',
+        'Errore raccolta': 'valore.errore',
+        'Errore raccolta dati': 'valore.errore',
+        'Errore rilevamento': 'valore.errore',
+        'Errore AudioWorklet': 'valore.errore',
+        'Errore ScriptProcessor': 'valore.errore',
+        'Timeout': 'valore.timeout',
+        'Timeout - AudioContext bloccato': 'valore.audioBloccato',
+        'Non rilevato': 'valore.nonRilevato',
+        'In carica': 'valore.inCarica',
+        'Scarica': 'valore.scarica',
+        'Non in carica': 'valore.nonInCarica',
+        'Raccolta in corso...': 'valore.inCorso',
+        'Nessun movimento': 'valore.nessunMovimento',
+        'Altro': 'valore.altro'
+    };
+
+    // Dispositivi oltre i quali due hanno lo stesso ID con probabilita' del 50% (ID a 32 bit)
+    const ID_UGUALI_50 = Math.sqrt(2 * Math.pow(2, 32) * Math.LN2);
+
+    let speedProgress = 0;
+
+    function raccolto(valore) {
+        return VALORI_RACCOLTI[valore] ? I18n.t(VALORI_RACCOLTI[valore]) : valore;
+    }
+
+    function siNo(valore) {
+        return I18n.t(valore ? 'valore.si' : 'valore.no');
+    }
+
+    function numero(valore, decimali) {
+        return valore.toLocaleString(I18n.getLanguage(), { maximumFractionDigits: decimali });
+    }
+
+    /** Numero grande in parole ("1,07 miliardi"), con le cifre significative indicate */
+    function numeroGrande(valore, cifre) {
+        const scale = [[1e15, 'numero.biliardi'], [1e12, 'numero.bilioni'], [1e9, 'numero.miliardi'],
+            [1e6, 'numero.milioni'], [1e3, 'numero.mila']];
+        const scala = scale.find(([soglia]) => valore >= soglia);
+        if (!scala) {
+            return numero(Math.round(valore), 0);
+        }
+        const cifra = (valore / scala[0]).toLocaleString(I18n.getLanguage(), { maximumSignificantDigits: cifre });
+        return I18n.t(scala[1], { n: cifra });
+    }
+
+    function dataOra(timestamp) {
+        const data = new Date(timestamp);
+        // Le visite salvate prima delle date ISO sono testo gia' formattato: si mostrano come sono
+        return isNaN(data) ? timestamp : data.toLocaleString(I18n.getLanguage(), {
+            year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+        });
+    }
+
     /**
-     * Aggiorna sezione batteria nella UI dopo raccolta ritardata
-     * Cerca la sezione specifica "Batteria e Alimentazione" per evitare
-     * conflitti con altre sezioni fp-section nella pagina
-     * 
-     * @param {Object} batteryInfo - Oggetto con dati batteria raccolti
-     * @param {string} batteryInfo.level - Livello batteria corrente
-     * @param {string} batteryInfo.charging - Stato ricarica corrente
-     * @param {string} batteryInfo.chargingTime - Tempo fino a ricarica completa
-     * @param {string} batteryInfo.dischargingTime - Autonomia residua
-     * @param {Object|null} batteryInfo.firstVisit - Dati prima visita se disponibili
+     * Righe di ogni sezione nella lingua scelta: si ricalcolano dai dati raccolti a ogni resa
+     * @param {Object} data - Fingerprint raccolto
+     * @returns {Object<string, Array<{voce: string, value: *}>>} Righe per id di sezione
      */
-    function updateBatteryInUI(batteryInfo) {
-        logger.log('[fingerprint-viewer] updateBatteryInUI chiamata con:', batteryInfo);
-        
-        // Cerca TUTTE le sezioni .fp-section nella pagina
-        const allSections = document.querySelectorAll('.fp-section');
-        logger.log('[fingerprint-viewer] Sezioni .fp-section trovate:', allSections.length);
-        
-        // Trova la sezione "Batteria e Alimentazione" specifica iterando sui titoli
-        let batterySection = null;
-        allSections.forEach(section => {
-            const titleElement = section.querySelector('.fp-section-title');
-            if (titleElement) {
-                const titleText = titleElement.textContent.trim();
-                logger.log('[fingerprint-viewer] Processando sezione con titolo:', titleText);
-                
-                // Match parziale per robustezza (include sottostringhe)
-                if (titleText.includes('Batteria')) {
-                    batterySection = section;
-                    logger.log('[fingerprint-viewer] Sezione batteria identificata');
-                }
-            }
-        });
-        
-        // Verifica che la sezione batteria sia stata trovata
-        if (!batterySection) {
-            logger.error('[fingerprint-viewer] Sezione "Batteria e Alimentazione" NON TROVATA nel DOM');
-            return;
-        }
-        
-        // Trova tutti gli item .fp-data-item dentro la sezione batteria
-        const items = batterySection.querySelectorAll('.fp-data-item');
-        logger.log('[fingerprint-viewer] Elementi .fp-data-item nella sezione batteria:', items.length);
-        
-        // Verifica esistenza elementi da aggiornare
-        if (items.length === 0) {
-            logger.error('[fingerprint-viewer] Nessun .fp-data-item trovato nella sezione batteria');
-            return;
-        }
+    function formatFingerprintData(data) {
+        const t = I18n.t;
+        const uniqueness = calculateUniqueness(data);
+        const storia = data.trackingHistory;
+        const rete = data.network;
+        const velocita = data.speed;
+        const comportamento = data.behavioralData;
+        const inCorso = t('valore.inCorso');
+        const nonDisponibile = t('valore.nonDisponibile');
 
-        // Contatore per tracciare numero aggiornamenti effettuati
-        let aggiornamenti = 0;
-
-        // Itera su ogni item e aggiorna il valore in base alla label
-        items.forEach(item => {
-            const labelElement = item.querySelector('.fp-label');
-            const valueElement = item.querySelector('.fp-value');
-            
-            // Verifica esistenza elementi label e value
-            if (!labelElement || !valueElement) {
-                logger.warn('[fingerprint-viewer] Item senza label o value, skip');
-                return;
+        const ipLocali = (() => {
+            const validi = (data.webrtcLocalIPs || []).filter(ip => ip && ip !== 'mDNS' && !ip.startsWith('e:'));
+            if (validi.length > 0) {
+                return validi.join(', ');
             }
-            
-            const labelText = labelElement.textContent.trim();
-            logger.log('[fingerprint-viewer] Processando item con label:', labelText);
-            
-            // Flag per tracciare se questo item è stato aggiornato
-            let itemAggiornato = false;
+            const mdns = (data.webrtcCandidateTypes && data.webrtcCandidateTypes.includes('host'))
+                || (data.webrtcLocalIPs && data.webrtcLocalIPs.includes('mDNS'));
+            return t(mdns ? 'valore.mdns' : 'valore.webrtcBloccato');
+        })();
+        const ipPubblici = (data.webrtcPublicIPs || []).filter(ip => ip && !ip.startsWith('e:'));
 
-            // Switch basato su label esatta per aggiornare valore corrispondente
-            switch(labelText) {
-                case 'Livello Batteria (Corrente)':
-                    valueElement.textContent = batteryInfo.level;
-                    itemAggiornato = true;
-                    break;
-                    
-                case 'Stato (Corrente)':
-                    valueElement.textContent = batteryInfo.charging;
-                    itemAggiornato = true;
-                    break;
-                    
-                case 'Tempo Ricarica':
-                    valueElement.textContent = batteryInfo.chargingTime;
-                    itemAggiornato = true;
-                    break;
-                    
-                case 'Autonomia Residua':
-                    valueElement.textContent = batteryInfo.dischargingTime;
-                    itemAggiornato = true;
-                    break;
-                    
-                case 'Livello Batteria (Prima Visita)':
-                    // Aggiorna solo se dati prima visita disponibili
-                    if (batteryInfo.firstVisit) {
-                        valueElement.textContent = batteryInfo.firstVisit.level;
-                        itemAggiornato = true;
-                    }
-                    break;
-                    
-                case 'Stato (Prima Visita)':
-                    // Aggiorna solo se dati prima visita disponibili
-                    if (batteryInfo.firstVisit) {
-                        valueElement.textContent = batteryInfo.firstVisit.charging;
-                        itemAggiornato = true;
-                    }
-                    break;
+        // Senza permesso il browser elenca al massimo un dispositivo per tipo e senza nome: il
+        // numero conta solo se il sito ha gia' avuto il permesso
+        const dispositivo = (quanti, puoNonElencare) => {
+            if (typeof quanti !== 'number') {
+                return raccolto(quanti);
             }
-            
-            // Log di conferma per ogni item aggiornato con successo
-            if (itemAggiornato) {
-                aggiornamenti++;
-                logger.log('[fingerprint-viewer] Aggiornato', labelText, 'con valore:', valueElement.textContent);
+            if (data.mediaDevicesLabels) {
+                return String(quanti);
             }
-        });
+            return t(quanti > 0 ? 'valore.presente' : puoNonElencare ? 'valore.nonElencato' : 'valore.assente');
+        };
 
-        // Log riepilogo finale con totale aggiornamenti effettuati
-        logger.log('[fingerprint-viewer] UI batteria aggiornata. Totale aggiornamenti:', aggiornamenti);
+        const extra = id => data.extraSections[id];
+
+        return {
+            visite: [
+                { voce: 'id', value: data.persistentID },
+                { voce: 'numero', value: storia.visitCount },
+                { voce: 'cronologia', value: storia.history.map(v => `(${raccolto(v.browser)}, ${dataOra(v.timestamp)})`).join('; ') },
+                { voce: 'prima', value: dataOra(storia.firstVisit) },
+                { voce: 'browserUsati', value: [...new Set(storia.history.map(v => raccolto(v.browser)))].join(', ') }
+            ],
+            unicita: [
+                { voce: 'validi', value: t('sezione.unicita.validiValore', { n: uniqueness.componentsPresent }) },
+                { voce: 'entropia', value: t('sezione.unicita.entropiaValore', { n: uniqueness.entropy }) },
+                { voce: 'teorica', value: t('sezione.unicita.teoricaValore', { n: numeroGrande(Math.pow(2, uniqueness.entropy), 3) }) },
+                { voce: 'idUguali', value: t('sezione.unicita.idUgualiValore', { n: numeroGrande(ID_UGUALI_50, 2) }) }
+            ],
+            ip: [
+                { voce: 'pubblico', value: raccolto(data.publicIP) },
+                { voce: 'localiWebrtc', value: ipLocali },
+                { voce: 'pubbliciWebrtc', value: ipPubblici.length ? ipPubblici.join(', ') : raccolto('Non rilevato') },
+                { voce: 'candidati', value: raccolto(data.webrtcCandidateTypes) },
+                { voce: 'protocolli', value: raccolto(data.webrtcProtocols) },
+                { voce: 'codec', value: `${data.webrtcCodecsCount} (${raccolto(data.webrtcCodecsSample)})` },
+                { voce: 'stato', value: t(data.online ? 'valore.online' : 'valore.offline') },
+                { voce: 'tipoRete', value: raccolto(data.connectionType) }
+            ],
+            fuso: [
+                { voce: 'fuso', value: data.timezone },
+                { voce: 'offset', value: t('sezione.fuso.offsetValore', { n: data.timezoneOffset }) }
+            ],
+            tastiera: extra('tastiera'),
+            reteDichiarata: rete ? [
+                { voce: 'tipo', value: rete.effectiveType || nonDisponibile },
+                { voce: 'downlink', value: rete.downlink !== undefined ? `${numero(rete.downlink, 2)} Mbps` : nonDisponibile },
+                { voce: 'rtt', value: rete.rtt !== undefined ? `${rete.rtt} ms` : nonDisponibile },
+                { voce: 'risparmio', value: siNo(rete.saveData) },
+                { voce: 'tipoRete', value: rete.type || nonDisponibile }
+            ] : [
+                { voce: 'api', value: t('valore.nonSupportato') }
+            ],
+            reteMisurata: [
+                { voce: 'velocita', value: !velocita ? inCorso : velocita.errore ? t('valore.testFallito') : `${numero(velocita.mbps, velocita.mbps >= 100 ? 0 : 1)} Mbps` },
+                { voce: 'dati', value: !velocita || velocita.errore ? '-' : t('sezione.reteMisurata.datiValore', { mb: numero(velocita.megabytes, 1), s: numero(velocita.seconds, 2) }) },
+                { voce: 'primoByte', value: !velocita || velocita.errore ? '-' : `${Math.round(velocita.firstByteMs)} ms` }
+            ],
+            browser: [
+                { voce: 'userAgent', value: data.userAgent },
+                { voce: 'lingua', value: data.language },
+                { voce: 'lingue', value: data.languages },
+                { voce: 'piattaforma', value: raccolto(data.platform) },
+                { voce: 'dnt', value: raccolto(data.doNotTrack) },
+                { voce: 'cookie', value: siNo(data.cookiesEnabled) }
+            ],
+            clientHints: extra('clientHints'),
+            hardware: [
+                { voce: 'risoluzione', value: data.screenResolution },
+                { voce: 'profondita', value: raccolto(data.colorDepth) },
+                { voce: 'pixelRatio', value: data.pixelRatio },
+                { voce: 'core', value: raccolto(data.hardwareConcurrency) },
+                { voce: 'tocco', value: data.maxTouchPoints }
+            ],
+            schermi: extra('schermi'),
+            schedaVideo: extra('schedaVideo'),
+            batteria: [
+                { voce: 'livello', value: raccolto(data.batteryLevel) },
+                { voce: 'stato', value: raccolto(data.batteryCharging) },
+                { voce: 'tempoRicarica', value: raccolto(data.batteryChargingTime) },
+                { voce: 'autonomia', value: raccolto(data.batteryDischargingTime) },
+                { voce: 'livelloPrima', value: raccolto(data.batteryFirstVisitLevel) || nonDisponibile },
+                { voce: 'statoPrima', value: raccolto(data.batteryFirstVisitCharging) || nonDisponibile }
+            ],
+            multimedia: [
+                { voce: 'telecamera', value: dispositivo(data.mediaDevicesVideoInput) },
+                { voce: 'microfono', value: dispositivo(data.mediaDevicesAudioInput) },
+                // Firefox e Safari non elencano gli altoparlanti prima del permesso
+                { voce: 'altoparlante', value: dispositivo(data.mediaDevicesAudioOutput, true) }
+            ],
+            sensori: [
+                { voce: 'motion', value: raccolto(data.sensorDeviceMotion) },
+                { voce: 'orientation', value: raccolto(data.sensorDeviceOrientation) },
+                { voce: 'accelerometro', value: raccolto(data.sensorAccelerometer) },
+                { voce: 'giroscopio', value: raccolto(data.sensorGyroscope) },
+                { voce: 'luce', value: raccolto(data.sensorAmbientLight) }
+            ],
+            canvas: [
+                { voce: 'canvas', value: raccolto(data.canvasFingerprint) },
+                { voce: 'audio', value: raccolto(data.audioFingerprint) },
+                { voce: 'webglVendor', value: raccolto(data.webglVendor) },
+                { voce: 'webglRenderer', value: raccolto(data.webglRenderer) },
+                { voce: 'webglVersione', value: raccolto(data.webglVersion) },
+                { voce: 'webglShading', value: raccolto(data.webglShadingLanguageVersion) }
+            ],
+            font: extra('font'),
+            voci: extra('voci'),
+            calcoli: extra('calcoli'),
+            preferenze: extra('preferenze'),
+            spazio: extra('spazio'),
+            comportamento: [
+                { voce: 'mouse', value: comportamento ? raccolto(comportamento.mouseSpeed) : inCorso },
+                { voce: 'clic', value: comportamento ? comportamento.clickCount : inCorso },
+                { voce: 'scorrimenti', value: comportamento ? comportamento.scrollCount : inCorso },
+                { voce: 'tasti', value: comportamento ? comportamento.keystrokeCount : inCorso }
+            ]
+        };
     }
 
+    // Chiavi delle righe che entrano nell'ID: si segnano con (*)
+    const CHIAVI_ID = new Set(Object.values(COMPONENTI_ID).map(([, chiave]) => chiave));
 
-    function formatFingerprintData(data) {
-        // Calcola unicita PRIMA di formattare dati
-        // Usa stessi componenti di Persistent ID per coerenza
-        const uniqueness = calculateUniqueness(data);
-        
-        return [
-            {
-                title: 'Analisi Unicità Fingerprint',
-                items: [
-                    { 
-                        label: 'Componenti Stabili Usati', 
-                        value: uniqueness.componentsText,
-                        truncate: false 
-                    },
-                    { 
-                        label: 'Entropia Totale', 
-                        value: uniqueness.entropyFormatted,
-                        truncate: false 
-                    },
-                    { 
-                        label: 'Combinazioni Teoriche', 
-                        value: uniqueness.combinationsFormatted,
-                        truncate: false 
-                    },
-                    { 
-                        label: 'Unicità Stimata', 
-                        value: uniqueness.uniquenessText,
-                        truncate: false 
-                    },
-                    { 
-                        label: 'Dispositivi per 50% Collisione', 
-                        value: uniqueness.devicesFor50Formatted,
-                        truncate: false 
-                    },
-                    { 
-                        label: 'Livello Privacy', 
-                        value: `${uniqueness.privacyLevel} - ${uniqueness.privacyDescription}`,
-                        truncate: false 
-                    }
-                ]
-            },
-            {
-                title: 'Browser Tracking',
-                items: [
-                    { 
-                        label: 'ID Persistente Univoco', 
-                        value: data.persistentID || 'Non disponibile',
-                        truncate: false
-                    },
-                    { 
-                        label: 'Numero Visite Totali', 
-                        value: data.trackingHistory ? data.trackingHistory.visitCount.toString() : '1',
-                        truncate: false
-                    },
-                    {
-                        label: 'Cronologia Visite',
-                        value: data.trackingHistory?.history?.map(v => 
-                            `(${v.browser}, ${v.timestamp})`
-                        ).join('; ') || 'Nessuna cronologia',
-                        truncate: false
-                    },
-                    { 
-                        label: 'Prima Visita', 
-                        value: data.trackingHistory?.firstVisit || 'Oggi',
-                        truncate: false
-                    },
-                    {
-                        label: 'Browser Usati',
-                        value: data.trackingHistory 
-                            ? [...new Set(data.trackingHistory.history.map(v => v.browser))].join(', ')
-                            : detectBrowser(),
-                        truncate: false
-                    }
-                ]
-            },
-            {
-                title: 'Informazioni Browser',
-                items: [
-                    { label: 'User Agent', value: data.userAgent, truncate: false},
-                    { label: 'Lingua', value: data.language },
-                    { label: 'Lingue', value: data.languages },
-                    { label: '(*) Piattaforma', value: data.platform },
-                    { label: 'Do Not Track', value: data.doNotTrack },
-                    { label: 'Cookie Abilitati', value: data.cookiesEnabled ? 'Si' : 'No' }
-                ]
-            },
-            {
-                title: 'Hardware e Display',
-                items: [
-                    { label: 'Risoluzione Schermo', value: data.screenResolution },
-                    { label: '(*) Profondita Colore', value: data.colorDepth },
-                    { label: '(*) Pixel Ratio', value: data.pixelRatio },
-                    { label: '(*) Core CPU', value: data.hardwareConcurrency },
-                    { label: 'Touch Points', value: data.maxTouchPoints }
-                ]
-            },
-            {
-                title: 'IP e Connessione',
-                items: [
-                    { label: 'IP Pubblico (Ipify)', value: data.publicIP },
-                    { 
-                        label: 'IP Locali (WebRTC)', 
-                        value: (() => {
-                            // Filtra IP validi ed errori
-                            const validIPs = data.webrtcLocalIPs && data.webrtcLocalIPs.length > 0 
-                                ? data.webrtcLocalIPs.filter(ip => ip && !ip.startsWith('e:'))
-                                : [];
-                            
-                            // Se ci sono IP validi, mostrali
-                            if (validIPs.length > 0) {
-                                return validIPs.join(', ');
-                            }
-                            
-                            // Altrimenti verifica se è mDNS o altro
-                            // Controlla se nei candidati ICE c'è traccia di mDNS
-                            const hasMdnsCandidate = (data.webrtcCandidateTypes && 
-                                data.webrtcCandidateTypes.includes('host')) ||
-                                (data.webrtcLocalIPs && data.webrtcLocalIPs.includes('mDNS'));
-                            
-                            if (hasMdnsCandidate) {
-                                return 'Nascosto (mDNS obfuscation browser)';
-                            }
-                            
-                            // Nessun candidato host = problema più serio
-                            return 'Non disponibile (WebRTC bloccato o assente)';
-                        })(),
-                        truncate: false
-                    },
-                    { 
-                        label: 'IP Pubblici (WebRTC)', 
-                        value: data.webrtcPublicIPs && data.webrtcPublicIPs.length > 0 
-                            ? data.webrtcPublicIPs.filter(ip => ip && !ip.startsWith('e:')).join(', ') 
-                            : 'Non rilevato',
-                        truncate: false
-                    },
-                    { label: 'Tipi Candidati ICE', value: data.webrtcCandidateTypes },
-                    { label: 'Protocolli Rete', value: data.webrtcProtocols },
-                    { label: 'Codec Supportati', value: `${data.webrtcCodecsCount} (${data.webrtcCodecsSample})` },
-                    { label: 'Stato Connessione', value: data.online ? 'Online' : 'Offline' },
-                    { label: 'Velocita Rete (4g >700Kbps)', value: data.connectionType }
-                ]
-            },
-            {
-                title: 'Fingerprinting Avanzato',
-                items: [
-                    { label: '(*) Canvas Fingerprint', value: data.canvasFingerprint },
-                    { label: '(*) Audio Fingerprint', value: data.audioFingerprint },
-                    { label: '(*) WebGL Vendor', value: data.webglVendor },
-                    { label: '(*) WebGL Renderer', value: data.webglRenderer, truncate: false},
-                    { label: '(*) WebGL Version', value: data.webglVersion },
-                    { label: 'WebGL Shading Language', value: data.webglShadingLanguageVersion }
-                ]
-            },
-            {
-                title: 'Batteria e Alimentazione',
-                items: [
-                    { label: 'Livello Batteria (Corrente)', value: data.batteryLevel },
-                    { label: 'Stato (Corrente)', value: data.batteryCharging },
-                    { label: 'Tempo Ricarica', value: data.batteryChargingTime },
-                    { label: 'Autonomia Residua', value: data.batteryDischargingTime },
-                    { label: 'Livello Batteria (Prima Visita)', value: data.batteryFirstVisitLevel || 'Non disponibile' },
-                    { label: 'Stato (Prima Visita)', value: data.batteryFirstVisitCharging || 'Non disponibile' }
-                ]
-            },
-            {
-                title: 'Dispositivi Multimediali (anche virtuali)',
-                items: [
-                    { label: 'Telecamere', value: data.mediaDevicesVideoInput },
-                    { label: 'Microfoni', value: data.mediaDevicesAudioInput },
-                    { label: 'Altoparlanti', value: data.mediaDevicesAudioOutput },
-                    { label: 'Totale Dispositivi', value: data.mediaDevicesTotalCount }
-                ]
-            },
-            {
-                title: 'Sensori Hardware',
-                items: [
-                    { label: 'Device Motion', value: data.sensorDeviceMotion },
-                    { label: 'Device Orientation', value: data.sensorDeviceOrientation },
-                    { label: 'Accelerometro', value: data.sensorAccelerometer },
-                    { label: 'Giroscopio', value: data.sensorGyroscope },
-                    { label: 'Sensore Luminosita', value: data.sensorAmbientLight }
-                ]
-            },
-            {
-                title: 'Localizzazione e Fuso Orario',
-                items: [
-                    { label: 'Fuso Orario', value: data.timezone },
-                    { label: 'Offset UTC', value: `${data.timezoneOffset} minuti` }
-                ]
-            },
-            {
-                title: 'Storage',
-                items: [
-                    { label: 'localStorage', value: data.localStorage ? 'Disponibile' : 'Non disponibile' },
-                    { label: 'sessionStorage', value: data.sessionStorage ? 'Disponibile' : 'Non disponibile' }
-                ]
-            },
-            {
-                title: 'Pattern Comportamentali',
-                items: [
-                    { label: 'Velocita Media Mouse', value: data.behavioralData ? data.behavioralData.mouseSpeed : 'Raccolta in corso...' },
-                    { label: 'Click Totali', value: data.behavioralData ? data.behavioralData.clickCount : 'Raccolta in corso...' },
-                    { label: 'Eventi Scroll', value: data.behavioralData ? data.behavioralData.scrollCount : 'Raccolta in corso...' },
-                    { label: 'Pressioni Tasti', value: data.behavioralData ? data.behavioralData.keystrokeCount : 'Raccolta in corso...' }
-                ]
-            },
-            ...data.extraSections,
-            {
-                title: 'Network Information API (falsato dal browser)',
-                items: [
-                    { label: 'Tipo Connessione Efficace', value: data.networkEffectiveType || 'Non disponibile' },
-                    { label: 'Downlink (Mbps)', value: data.networkDownlink || 'Non disponibile' },
-                    { label: 'Latenza RTT (ms)', value: data.networkRtt || 'Non disponibile' },
-                    { label: 'Risparmio Dati', value: data.networkSaveData || 'Non disponibile' },
-                    { label: 'Tipo Rete', value: data.networkType || 'Non disponibile' }
-                ]
-            },
-            {
-                title: 'Test Velocita Connessione (calcolato effettivo)',
-                items: [
-                    { label: 'Velocita Download', value: 'Test in corso...' },
-                    { label: 'Dati Scaricati', value: 'In attesa...' },
-                    { label: 'Tempo al Primo Byte', value: 'In attesa...' }
-                ]
-            }
-        ];
+    /**
+     * HTML di una sezione: titolo, spiegazione, riga dei permessi e righe dei valori
+     * @param {string} id - Id della sezione
+     * @param {Array<{voce: string, value: *, etichetta?: string}>} items - Righe
+     * @returns {string} HTML della sezione
+     */
+    function renderSection(id, items) {
+        const esc = FingerprintUtils.escapeHtml;
+        const t = I18n.t;
+        const tag = I18n.has(`sezione.${id}.tag`) ? t(`sezione.${id}.tag`) : t('tag.base');
+        const righe = items.map(item => {
+            const chiave = item.etichetta || `sezione.${id}.${item.voce}`;
+            const etichetta = (CHIAVI_ID.has(chiave) ? '(*) ' : '') + t(chiave);
+            return `
+                    <div class="fp-data-item">
+                        <dt class="fp-label">${esc(etichetta)}</dt>
+                        <dd class="fp-value">${esc(I18n.resolve(item.value))}</dd>
+                    </div>`;
+        }).join('');
+        const progresso = id === 'reteMisurata'
+            ? '<div class="progress-container"><div class="progress-bar" id="speed-test-progress"></div></div>'
+            : '';
+        return `
+                <div class="fp-section" data-sezione="${id}">
+                    <h3 class="fp-section-title">${esc(t(`sezione.${id}.titolo`))}</h3>
+                    <p class="fp-section-note">${esc(t(`sezione.${id}.nota`))}</p>
+                    <p class="fp-section-tag">${esc(tag)}</p>
+                    <dl class="fp-data-list">${righe}
+                    </dl>
+                    ${progresso}
+                </div>`;
     }
 
     /**
-     * Visualizza fingerprint nella UI con warning componenti invalidi
+     * Ridisegna una sola sezione dai dati raccolti: serve agli aggiornamenti che arrivano dopo
+     * (batteria, comportamento, speed test)
+     * @param {string} id - Id della sezione
+     */
+    function refreshSection(id) {
+        const sezione = document.querySelector(`[data-sezione="${id}"]`);
+        if (!sezione || !cachedFingerprint) {
+            return;
+        }
+        sezione.outerHTML = renderSection(id, formatFingerprintData(cachedFingerprint)[id]);
+        updateSpeedTestProgress(speedProgress);
+    }
+
+    /**
+     * Visualizza fingerprint nella UI con avviso dei componenti esclusi
      */
     function displayFingerprint(data) {
         const container = document.getElementById('fp-content');
@@ -2252,31 +1863,26 @@
             logger.error('[fingerprint-viewer] Container fp-content non trovato');
             return;
         }
-
-        // Calcola unicita per ottenere componenti invalidi
+        const esc = FingerprintUtils.escapeHtml;
+        const t = I18n.t;
         const uniqueness = calculateUniqueness(data);
 
-        // Warning privacy standard
         const warningHTML = `
             <div class="fp-warning" role="alert">
-                <strong>Attenzione Privacy</strong>
-                    Questi dati possono essere raccolti senza consenso. La loro combinazione crea un'impronta 
-                    digitale unica per tracciare la tua attività online, anche senza cookie. <br>
-                    L'ID Persistente deriva dalla combinazione dei KPI contrassegnati con (*).
+                <strong>${esc(t('avviso.titolo'))}</strong>
+                ${esc(t('avviso.testo'))}
             </div>
         `;
 
-        // Warning componenti invalidi (solo se presenti)
         let invalidWarningHTML = '';
-        if (uniqueness.componentsInvalid && uniqueness.componentsInvalid.length > 0) {
-            const invalidList = uniqueness.componentsInvalid.map(item => 
-                `<li><strong>${FingerprintUtils.escapeHtml(item.component)}</strong>: "${FingerprintUtils.escapeHtml(String(item.value))}"</li>`
+        if (uniqueness.componentsInvalid.length > 0) {
+            const invalidList = uniqueness.componentsInvalid.map(item =>
+                `<li><strong>${esc(t(COMPONENTI_ID[item.component][1]))}</strong>: "${esc(raccolto(item.value))}"</li>`
             ).join('');
-            
             invalidWarningHTML = `
                 <div class="fp-warning" role="alert">
-                    <strong>Componenti Esclusi dal Calcolo Entropia</strong>
-                    I seguenti componenti contengono valori spoofed o non informativi e sono stati esclusi:
+                    <strong>${esc(t('esclusi.titolo'))}</strong>
+                    ${esc(t('esclusi.testo'))}
                     <ul class="fp-invalid-list">
                         ${invalidList}
                     </ul>
@@ -2284,120 +1890,31 @@
             `;
         }
 
-        const sections = formatFingerprintData(data);
-        let sectionsHTML = '';
+        const sezioni = formatFingerprintData(data);
+        const gruppiHTML = GRUPPI.map(([gruppo, ids]) => `
+            <h2 class="fp-group-title">${esc(t(`gruppo.${gruppo}`))}</h2>
+            ${ids.map(id => renderSection(id, sezioni[id])).join('')}
+        `).join('');
 
-        sections.forEach(section => {
-            sectionsHTML += `
-                <div class="fp-section">
-                    <h3 class="fp-section-title">${FingerprintUtils.escapeHtml(section.title)}</h3>
-                    <dl class="fp-data-list">
-            `;
-
-            section.items.forEach(item => {
-                const value = item.truncate && item.value.length > 50 
-                    ? item.value.substring(0, 50) + '...' 
-                    : item.value;
-                
-                sectionsHTML += `
-                    <div class="fp-data-item">
-                        <dt class="fp-label">${FingerprintUtils.escapeHtml(item.label)}</dt>
-                        <dd class="fp-value">${FingerprintUtils.escapeHtml(String(value))}</dd>
-                    </div>
-                `;
-            });
-
-            sectionsHTML += `
-                    </dl>
-                </div>
-            `;
-        });
-
-        container.innerHTML = warningHTML + invalidWarningHTML + sectionsHTML;
-        
-        // Aggiungi progress bar per speed test nel DOM
-        const progressBarHTML = `
-            <div class="fp-section">
-                <h3 class="fp-section-title">Progress Test Velocita</h3>
-                <div class="progress-container">
-                    <div class="progress-bar" id="speed-test-progress">0%</div>
-                </div>
-            </div>
-        `;
-
-        // Inserisci la progress bar dopo l'ultima sezione
-        const lastSection = container.querySelector('.fp-section:last-of-type');
-        if (lastSection) {
-            lastSection.insertAdjacentHTML('afterend', progressBarHTML);
-        }
-
-        trackBehavioralPatterns();
-        
+        container.innerHTML = warningHTML + invalidWarningHTML + gruppiHTML;
+        updateSpeedTestProgress(speedProgress);
         logger.log('[fingerprint-viewer] Fingerprint visualizzato');
     }
 
     /**
-     * Esegue test velocita connessione e aggiorna UI dinamicamente
+     * Esegue lo speed test e ridisegna la sua sezione con l'esito
      */
     async function runConnectionSpeedTestWithUIUpdate() {
         try {
             logger.log('[connection-speed] Avvio test velocita...');
-            
-            const speedData = await measureConnectionSpeed();
-            
-            // Aggiorna i valori nella sezione Speed Test
-            updateSpeedDataInUI(speedData);
-            
-            logger.log('[connection-speed] Test velocita completato:', speedData);
+            cachedFingerprint.speed = await measureConnectionSpeed();
+            logger.log('[connection-speed] Test velocita completato:', cachedFingerprint.speed);
         } catch (error) {
             logger.error('[connection-speed] Errore test velocita:', error);
-            updateSpeedDataInUI({
-                speedMbps: 'Errore',
-                downloaded: 'Test fallito',
-                firstByte: 'N/A'
-            });
+            cachedFingerprint.speed = { errore: true };
         }
+        refreshSection('reteMisurata');
     }
-
-    /**
-     * Aggiorna UI con dati speed test
-     */
-    function updateSpeedDataInUI(speedData) {
-        // Trova tutte le sezioni e individua quella Speed Test
-        const sections = document.querySelectorAll('.fp-section');
-        let speedSection = null;
-        
-        sections.forEach(section => {
-            const title = section.querySelector('.fp-section-title');
-            if (title && title.textContent.includes('Test Velocita Connessione')) {
-                speedSection = section;
-            }
-        });
-        
-        if (!speedSection) return;
-        
-        // Aggiorna i valori
-        const items = speedSection.querySelectorAll('.fp-data-item');
-        items.forEach(item => {
-            const label = item.querySelector('.fp-label')?.textContent;
-            const valueEl = item.querySelector('.fp-value');
-            
-            if (!valueEl) return;
-            
-            switch(label) {
-                case 'Velocita Download':
-                    valueEl.textContent = speedData.speedMbps || 'Non disponibile';
-                    break;
-                case 'Dati Scaricati':
-                    valueEl.textContent = speedData.downloaded || 'Non disponibile';
-                    break;
-                case 'Tempo al Primo Byte':
-                    valueEl.textContent = speedData.firstByte || 'Non disponibile';
-                    break;
-            }
-        });
-    }
-
 
     /**
      * Inizializzazione principale
@@ -2406,32 +1923,19 @@
         logger.log('[fingerprint-viewer] Inizializzazione');
 
         try {
-            const fingerprint = await collectFingerprint();
+            const [fingerprint] = await Promise.all([collectFingerprint(), I18n.ready]);
             displayFingerprint(fingerprint);
-
-            // Aspetta che il DOM sia completamente renderizzato
-            await new Promise(resolve => setTimeout(resolve, 100));
-            // Ora avvia speed test con progress bar funzionante
+            trackBehavioralPatterns();
             await runConnectionSpeedTestWithUIUpdate();
-
         } catch (error) {
             logger.error('[fingerprint-viewer] Errore durante inizializzazione', error);
             const container = document.getElementById('fp-content');
             if (container) {
-                container.innerHTML = `
-                    <div class="fp-error">
-                        Errore durante la raccolta dei dati del fingerprint.
-                        Riprova ricaricando la pagina.
-                    </div>
-                `;
+                container.innerHTML = `<div class="fp-error">${FingerprintUtils.escapeHtml(I18n.t('errore.raccolta'))}</div>`;
             }
         }
     }
 
-    /**
-     * Entry point applicazione - Esegue init() quando DOM è pronto
-     * Controlla readyState per gestire sia caricamento sincrono che asincrono
-     */
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
@@ -2455,7 +1959,7 @@
      * Il tempo parte dal primo blocco di ogni download, cosi' l'attesa della risposta (il tempo
      * al primo byte, mostrato a parte) non abbassa la velocita'. I byte del primo blocco sono
      * scaricati ma non misurati, perche' arrivano prima che il cronometro parta.
-     * @returns {Promise<Object>} speedMbps, downloaded, firstByte gia' formattati
+     * @returns {Promise<Object>} mbps, megabytes, seconds, firstByteMs
      */
     async function measureConnectionSpeed() {
         const deadline = performance.now() + SPEED_TEST.maxMs;
@@ -2517,38 +2021,23 @@
         logger.log(`[connection-speed] ${totalBytes} byte, ${mbps.toFixed(2)} Mbps, primo byte ${firstByteMs.toFixed(0)} ms`);
 
         return {
-            speedMbps: formatSpeedMbps(mbps),
-            downloaded: `${(totalBytes / 1024 / 1024).toFixed(1)} MB in ${(measuredMs / 1000).toFixed(2)} s`,
-            firstByte: `${Math.round(firstByteMs)} ms`
+            mbps: mbps,
+            megabytes: totalBytes / 1024 / 1024,
+            seconds: measuredMs / 1000,
+            firstByteMs: firstByteMs
         };
     }
 
     /**
-     * Aggiorna progress bar UI durante test
+     * Aggiorna progress bar UI durante test; il valore resta per le rese successive
      * @param {number} percentage - Percentuale completamento (0-100)
      */
     function updateSpeedTestProgress(percentage) {
+        speedProgress = percentage;
         const progressBar = document.getElementById('speed-test-progress');
         if (progressBar) {
             progressBar.style.width = `${percentage}%`;
             progressBar.textContent = `${Math.round(percentage)}%`;
         }
-    }
-
-    /**
-     * Formatta velocità in Mbps con 1 decimale
-     * @param {number} mbps - Velocità in Mbps
-     * @returns {string} Velocità formattata
-     */
-    function formatSpeedMbps(mbps) {
-    if (mbps === null || mbps === undefined || isNaN(mbps)) {
-        return 'Errore';
-    }
-    
-    if (mbps >= 100) {
-        return `${Math.round(mbps)} Mbps`;
-    }
-    
-    return `${mbps.toFixed(1)} Mbps`;
     }
 })();
