@@ -406,6 +406,44 @@
     }
 
     /**
+     * Rumore sull'audio: un segnale costante a 0.5 deve tornare esatto in ogni campione. Brave,
+     * Safari e Firefox con le protezioni lo alterano; Brave con un rumore fisso per sessione,
+     * che ripetere lo stesso calcolo non svelerebbe.
+     *
+     * @returns {Promise<string>} 'Rumore presente', 'Rumore assente' o un valore di errore
+     */
+    async function detectAudioNoise() {
+        const OfflineContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        if (!OfflineContext || !window.ConstantSourceNode) return 'Non disponibile';
+        try {
+            const context = new OfflineContext(1, 1000, 44100);
+            const source = context.createConstantSource();
+            source.offset.value = 0.5;
+            source.connect(context.destination);
+            source.start(0);
+            const samples = (await context.startRendering()).getChannelData(0);
+            return samples.every(sample => sample === 0.5) ? 'Rumore assente' : 'Rumore presente';
+        } catch (error) {
+            logger.error('[fingerprint-viewer] Errore rumore audio:', error);
+            return 'Errore';
+        }
+    }
+
+    /**
+     * Tetto di tempo: se un browser non porta a termine un calcolo audio, la pagina non resta
+     * ferma
+     */
+    function conTettoAudio(calcolo, nome) {
+        return Promise.race([
+            calcolo,
+            new Promise(resolve => setTimeout(() => {
+                logger.warn(`[fingerprint-viewer] ${nome}: tempo scaduto`);
+                resolve('Timeout');
+            }, CONFIG.audioTimeout))
+        ]);
+    }
+
+    /**
      * Raccoglie informazioni WebGL per fingerprinting
      */
     function getWebGLFingerprint() {
@@ -989,7 +1027,9 @@
 
         for (const [componentName, [entropyBits]] of Object.entries(COMPONENTI_ID)) {
             const value = fingerprint[componentName];
-            if (isComponentValid(componentName, value)) {
+            // Con il rumore l'impronta audio cambia a ogni sessione: non distingue nessuno
+            const conRumore = componentName === 'audioFingerprint' && fingerprint.audioNoise === 'Rumore presente';
+            if (isComponentValid(componentName, value) && !conRumore) {
                 entropy += entropyBits;
                 componentsPresent += 1;
             } else {
@@ -1019,17 +1059,11 @@
 
         // Le raccolte che aspettano la rete o un'API lenta partono insieme: in sequenza
         // "Analisi in corso" durava fino a circa 15 secondi, cosi' dura quanto la piu' lenta (FP-07)
-        const [publicIP, webrtcData, audioFingerprint, mediaDevices, extraSections] = await Promise.all([
+        const [publicIP, webrtcData, audioFingerprint, audioNoise, mediaDevices, extraSections] = await Promise.all([
             fetchPublicIP(),
             detectWebRTCLeak(),
-            // Tetto di tempo: se un browser non porta a termine il calcolo, la pagina non resta ferma
-            Promise.race([
-                generateAudioFingerprint(),
-                new Promise(resolve => setTimeout(() => {
-                    logger.warn('[fingerprint-viewer] Impronta audio: tempo scaduto');
-                    resolve('Timeout');
-                }, CONFIG.audioTimeout))
-            ]),
+            conTettoAudio(generateAudioFingerprint(), 'Impronta audio'),
+            conTettoAudio(detectAudioNoise(), 'Rumore audio'),
             getMediaDevices(),
             // Tecniche aggiuntive di fingerprint-extra.js, solo mostrate: fuori dall'ID persistente
             window.FingerprintExtra.collect()
@@ -1046,6 +1080,7 @@
             webrtcCodecsCount: webrtcData.advancedStats?.codecsCount || 0,
             webrtcCodecsSample: webrtcData.advancedStats?.codecsSample || 'Non disponibile',
             audioFingerprint: audioFingerprint,
+            audioNoise: audioNoise,
             webglVendor: webglData.vendor,
             webglRenderer: webglData.renderer,
             webglVersion: webglData.version,
@@ -1158,6 +1193,8 @@
         'Non in carica': 'valore.nonInCarica',
         'Raccolta in corso...': 'valore.inCorso',
         'Nessun movimento': 'valore.nessunMovimento',
+        'Rumore assente': 'valore.rumoreAssente',
+        'Rumore presente': 'valore.rumorePresente',
         'Altro': 'valore.altro'
     };
 
@@ -1324,6 +1361,7 @@
             canvas: [
                 { voce: 'canvas', value: raccolto(data.canvasFingerprint) },
                 { voce: 'audio', value: raccolto(data.audioFingerprint) },
+                { voce: 'rumore', value: raccolto(data.audioNoise) },
                 { voce: 'webglVendor', value: raccolto(data.webglVendor) },
                 { voce: 'webglRenderer', value: raccolto(data.webglRenderer) },
                 { voce: 'webglVersione', value: raccolto(data.webglVersion) },

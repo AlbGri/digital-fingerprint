@@ -1,6 +1,8 @@
 # Changelog
 
 ## 2026-11-07
+- La pagina si accorge se il browser aggiunge rumore all'audio per difendersi, come fanno Brave e
+  Safari; in quel caso l'impronta audio non conta nella stima di unicita'
 - La pagina lascia albgri.com, dove era nata nell'ottobre 2025, e diventa un progetto a se' con il
   codice aperto su GitHub
 - Il vecchio indirizzo albgri.com/fingerprint.html porta a df.albgri.com

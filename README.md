@@ -10,7 +10,8 @@ Sito: https://df.albgri.com/ (anche https://albgri.github.io/digital-fingerprint
 Senza chiedere niente, appena la pagina si apre:
 - un ID ricavato da nove valori del browser e dell'hardware (quelli con l'asterisco), con una stima
   di quanto ti distingue dagli altri, e le visite precedenti in cui ti ha riconosciuto
-- browser, lingue, schermo, processore, scheda video (WebGL e WebGPU), impronte canvas e audio
+- browser, lingue, schermo, processore, scheda video (WebGL e WebGPU), impronte canvas e audio,
+  con il rumore che alcuni browser aggiungono all'audio per difendersi
 - IP pubblico e indirizzi che escono da WebRTC
 - batteria, presenza di telecamera, microfono e altoparlanti, sensori
 - Client Hints, font installati, voci di sintesi vocale, preferenze del sistema, spazio del
