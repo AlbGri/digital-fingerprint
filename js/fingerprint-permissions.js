@@ -598,12 +598,15 @@
             stopButton.type = 'button';
             stopButton.style.marginTop = '10px';
 
-            stopButton.addEventListener('click', () => {
+            const fine = () => {
                 stream.getTracks().forEach(track => track.stop());
                 container.innerHTML = `<p>${esc(t('permessi.schermo.interrotta'))}</p>`;
                 button.disabled = false;
                 etichetta(button, 'permessi.schermo.riavvia');
-            });
+            };
+            stopButton.addEventListener('click', fine);
+            // Interruzione dalla barra del browser: arriva solo come fine della traccia
+            stream.getVideoTracks().forEach(track => track.addEventListener('ended', fine));
 
             container.innerHTML = `<h4>${esc(t('permessi.schermo.anteprima'))}</h4>`
                 + `<div class="fp-warning"><strong>${esc(t('permessi.schermo.attenzione'))}</strong> ${esc(t('permessi.schermo.avviso'))}</div>`;
