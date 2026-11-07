@@ -1408,7 +1408,7 @@
         const uniqueness = calculateUniqueness(data);
 
         const warningHTML = `
-            <div class="fp-warning" role="alert">
+            <div class="fp-warning">
                 <strong>${esc(t('avviso.titolo'))}</strong>
                 ${esc(t('avviso.testo'))}
             </div>
@@ -1420,7 +1420,7 @@
                 `<li><strong>${esc(t(COMPONENTI_ID[item.component][1]))}</strong>: "${esc(raccolto(item.value))}"</li>`
             ).join('');
             invalidWarningHTML = `
-                <div class="fp-warning" role="alert">
+                <div class="fp-warning">
                     <strong>${esc(t('esclusi.titolo'))}</strong>
                     ${esc(t('esclusi.testo'))}
                     <ul class="fp-invalid-list">

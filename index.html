@@ -55,7 +55,7 @@
     <!-- Skip link per accessibilita WCAG 2.1 -->
     <a href="#fingerprint-section" class="skip-link" data-i18n="pagina.salta"></a>
 
-    <div class="form-container">
+    <main class="form-container">
         <div class="top-bar">
             <button id="clock" type="button" class="clock" aria-controls="timezone-select"></button>
             <button id="language-toggle" type="button" class="language-toggle"></button>
@@ -66,7 +66,7 @@
 
         <!-- Parte senza permessi: la riempie fingerprint-viewer.js -->
         <section class="fingerprint-section" id="fingerprint-section">
-            <div id="fp-content" class="fp-content" role="main" aria-live="polite">
+            <div id="fp-content" class="fp-content">
                 <p class="fp-loading" data-i18n="pagina.caricamento"></p>
             </div>
         </section>
@@ -175,7 +175,7 @@
             </details>
 
             <!-- Avviso finale -->
-            <div class="fp-warning" role="alert">
+            <div class="fp-warning">
                 <strong data-i18n="permessi.nota.titolo"></strong>
                 <span data-i18n="permessi.nota.testo"></span>
             </div>
@@ -188,7 +188,7 @@
             <p id="clear-demo-data-result" role="status"></p>
         </div>
 
-    </div>
+    </main>
 
     <footer role="contentinfo">
         <p>
