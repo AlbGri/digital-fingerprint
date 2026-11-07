@@ -474,13 +474,16 @@
      * ferma
      */
     function conTettoAudio(calcolo, nome) {
+        let timer;
         return Promise.race([
             calcolo,
-            new Promise(resolve => setTimeout(() => {
-                logger.warn(`[fingerprint-viewer] ${nome}: tempo scaduto`);
-                resolve('Timeout');
-            }, CONFIG.audioTimeout))
-        ]);
+            new Promise(resolve => {
+                timer = setTimeout(() => {
+                    logger.warn(`[fingerprint-viewer] ${nome}: tempo scaduto`);
+                    resolve('Timeout');
+                }, CONFIG.audioTimeout);
+            })
+        ]).finally(() => clearTimeout(timer));
     }
 
     /**
