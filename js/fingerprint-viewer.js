@@ -228,12 +228,11 @@
                         }
                     }
 
-                    // Regex per IPv4 e IPv6 (codice esistente)
-                    const ipMatch = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/gi.exec(candidate);
+                    // L'indirizzo e' il quinto campo del candidato: cosi' vale per IPv4 e per
+                    // IPv6 in ogni forma, anche abbreviata con "::"
+                    const ip = candidate.split(' ')[4];
 
-                    if (ipMatch && ipMatch[1]) {
-                        const ip = ipMatch[1];
-                        
+                    if (ip && !ip.endsWith('.local')) {
                         if (FingerprintUtils.isLocalIP(ip)) {
                             if (!ips.local.includes(ip)) {
                                 ips.local.push(ip);

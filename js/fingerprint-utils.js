@@ -18,23 +18,23 @@
          */
         isLocalIP: function(ip) {
             if (!ip || typeof ip !== 'string') return false;
-            
-            if (ip === '0.0.0.0' || ip === '127.0.0.1' || ip === 'localhost') {
-                return true;
-            }
-            
-            const ipv4Patterns = [
+            if (ip === '0.0.0.0' || ip === 'localhost') return true;
+
+            const privatePatterns = [
                 /^10\./,
+                /^127\./,
                 /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
                 /^192\.168\./,
                 /^169\.254\./,
-                /^fe80:/i,
+                // 100.64.0.0/10: indirizzi condivisi degli operatori (CGNAT), comuni sul mobile
+                /^100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\./,
                 /^::1$/,
-                /^fc00:/i,
-                /^fd00:/i
+                /^fe[89ab][0-9a-f]:/i,
+                // fc00::/7: tutti gli indirizzi IPv6 privati, non solo fc00: e fd00:
+                /^f[cd][0-9a-f]{2}:/i
             ];
-            
-            return ipv4Patterns.some(pattern => pattern.test(ip));
+
+            return privatePatterns.some(pattern => pattern.test(ip));
         },
 
         /**
