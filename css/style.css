@@ -185,13 +185,40 @@
         }
     }
 
-    /* Barra in alto: pulsante della lingua */
+    /* Barra in alto: orologio con il fuso a sinistra, lingua a destra, elenco dei fusi sotto */
     .top-bar {
         display: flex;
-        justify-content: flex-end;
+        flex-wrap: wrap;
+        justify-content: space-between;
         align-items: center;
         gap: var(--spacing-sm);
         margin-block-end: var(--spacing-md);
+    }
+
+    .clock,
+    .language-toggle,
+    .timezone-select {
+        font: inherit;
+        font-size: 0.9em;
+        padding: 4px 10px;
+        color: var(--color-text);
+        background: var(--color-body-bg);
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius);
+    }
+
+    /* Un fuso lungo (America/Argentina/Buenos_Aires) non deve allargare la pagina sul telefono */
+    .clock {
+        min-inline-size: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .timezone-select {
+        flex-basis: 100%;
+        min-inline-size: 0;
     }
 
     /* Mostra la lingua verso cui si passa: bandiera disegnata qui, non emoji (su Windows diventa due lettere) */
@@ -200,13 +227,7 @@
         align-items: center;
         gap: 0.4em;
         white-space: nowrap;
-        font: inherit;
         font-weight: 600;
-        padding: 4px 10px;
-        color: var(--color-text);
-        background: var(--color-body-bg);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius);
     }
 
     .language-toggle::before {

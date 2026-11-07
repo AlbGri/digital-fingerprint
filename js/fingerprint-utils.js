@@ -69,7 +69,7 @@
         formatTimestamp: function(timestamp) {
             try {
                 const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
-                return date.toLocaleString(window.I18n.getLanguage());
+                return date.toLocaleString(window.I18n.getLanguage(), { timeZone: window.Clock.getTimeZone() });
             } catch (error) {
                 return 'Data non valida';
             }

@@ -404,5 +404,7 @@
   "permessi.schermo.avviso": "Stai condividendo il tuo schermo. Tutto ciò che è visibile può essere registrato.",
   "permessi.schermo.attiva": "Condivisione attiva",
 
-  "lingua.passa": "English"
+  "lingua.passa": "English",
+  "orologio.cambia": "Cambia il fuso orario",
+  "orologio.fuso": "Fuso orario"
 }

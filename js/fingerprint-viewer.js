@@ -1656,6 +1656,7 @@
         const data = new Date(timestamp);
         // Le visite salvate prima delle date ISO sono testo gia' formattato: si mostrano come sono
         return isNaN(data) ? timestamp : data.toLocaleString(I18n.getLanguage(), {
+            timeZone: Clock.getTimeZone(),
             year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
         });
     }
@@ -1936,12 +1937,15 @@
         }
     }
 
-    // Cambio lingua: si ridisegna dai dati gia' raccolti, senza rifare analisi e speed test
-    document.addEventListener('df:lingua', () => {
+    // Cambio di lingua o di fuso: si ridisegna dai dati gia' raccolti, senza rifare analisi e
+    // speed test
+    function ridisegna() {
         if (cachedFingerprint && document.querySelector('[data-sezione]')) {
             displayFingerprint(cachedFingerprint);
         }
-    });
+    }
+    document.addEventListener('df:lingua', ridisegna);
+    document.addEventListener('df:fuso', ridisegna);
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);

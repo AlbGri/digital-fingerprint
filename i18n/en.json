@@ -404,5 +404,7 @@
   "permessi.schermo.avviso": "You are sharing your screen. Everything visible can be recorded.",
   "permessi.schermo.attiva": "Sharing on",
 
-  "lingua.passa": "Italiano"
+  "lingua.passa": "Italiano",
+  "orologio.cambia": "Change the time zone",
+  "orologio.fuso": "Time zone"
 }

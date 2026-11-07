@@ -46,6 +46,7 @@
     <script src="js/logger.js" defer></script>
     <script src="js/fingerprint-utils.js" defer></script>
     <script src="js/i18n.js" defer></script>
+    <script src="js/clock.js" defer></script>
     <script src="js/fingerprint-extra.js" defer></script>
     <script src="js/fingerprint-viewer.js" defer></script>
     <script src="js/fingerprint-permissions.js" defer></script>
@@ -56,7 +57,9 @@
 
     <div class="form-container">
         <div class="top-bar">
+            <button id="clock" type="button" class="clock" aria-controls="timezone-select"></button>
             <button id="language-toggle" type="button" class="language-toggle"></button>
+            <select id="timezone-select" class="timezone-select" hidden></select>
         </div>
 
         <h1 id="fingerprint-title">Digital Fingerprint</h1>
