@@ -41,7 +41,8 @@ df.albgri.com) riceve le normali richieste di ogni sito.
 
 ID, cronologia delle visite e prima lettura della batteria restano nel localStorage del tuo
 browser, per mostrarti che la pagina ti riconosce, insieme alla lingua e al fuso scelti. Si
-cancellano dalle impostazioni del browser, con i dati del sito.
+cancellano con il pulsante in fondo alla pagina, che lascia solo lingua e fuso scelti, oppure
+dalle impostazioni del browser, con i dati del sito.
 
 ## Provarla in locale
 
