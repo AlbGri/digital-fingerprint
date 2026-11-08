@@ -7,6 +7,7 @@
   ti colleghi
 - Pulsanti e titoli piu' coerenti: stesso carattere ovunque, e il titolo della sezione con i
   permessi non e' piu' rosso
+- Opera riconosciuto: prima risultava Chrome nella cronologia delle visite
 - In cima alla pagina un ritratto: poche frasi con quello che chi raccoglie questi dati ne
   dedurrebbe
 - Nuova sezione "Estensioni installate": portafogli di criptovalute, strumenti per programmatori

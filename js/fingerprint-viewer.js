@@ -946,9 +946,10 @@
         
         if (ua.includes('Firefox')) return 'Firefox';
         if (ua.includes('Edg')) return 'Edge';
-        if (ua.includes('Chrome')) return 'Chrome';
-        if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+        // Opera dice anche "Chrome": va controllato prima
         if (ua.includes('Opera') || ua.includes('OPR')) return 'Opera';
+        if (ua.includes('Chrome')) return 'Chrome';
+        if (ua.includes('Safari')) return 'Safari';
         
         return 'Altro';
     }
