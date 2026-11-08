@@ -8,6 +8,7 @@
  *              - Media Devices dettagliati
  *              - Motion/Orientation live
  *              - Screen Capture demo
+ *              - Periferiche USB e Bluetooth
  */
 
 (function() {
@@ -26,6 +27,21 @@
         return `<p class="error">${esc(t('permessi.errore', { messaggio: messaggio }))}</p>`;
     }
 
+    // Una periferica: il nome come titolo, poi solo le righe che hanno un valore
+    function perifericaHtml(nome, righe) {
+        return `<h5>${esc(nome)}</h5><dl>`
+            + righe.filter(([, valore]) => valore).map(([campo, valore]) =>
+                `<dt>${esc(t(`permessi.periferiche.${campo}`))}</dt><dd>${esc(valore)}</dd>`).join('')
+            + '</dl>';
+    }
+
+    // Classi USB che dicono che oggetto e': le altre non aiutano a riconoscerlo
+    const CLASSI_USB = {
+        0x01: 'audio', 0x02: 'rete', 0x03: 'hid', 0x06: 'immagini', 0x07: 'stampante',
+        0x08: 'archivio', 0x09: 'hub', 0x0B: 'smartCard', 0x0E: 'video', 0xE0: 'wireless',
+        0xFF: 'proprie'
+    };
+
     const PermissionsManager = {
         
         /**
@@ -36,6 +52,7 @@
             
             this.setupEventListeners();
             this.checkExistingPermissions();
+            this.setupPeriferiche();
         },
 
         /**
@@ -108,6 +125,12 @@
                     break;
                 case 'clipboard-read':
                     this.requestClipboard(button);
+                    break;
+                case 'usb':
+                    this.requestUsb(button);
+                    break;
+                case 'bluetooth':
+                    this.requestBluetooth(button);
                     break;
                 default:
                     logger.warn('[fingerprint-permissions] Azione non riconosciuta:', action);
@@ -617,6 +640,146 @@
             button.classList.add('success');
 
             logger.log('[fingerprint-permissions] Screen capture avviato');
+        },
+
+        /**
+         * Feature 6: periferiche USB e Bluetooth. Pulsanti solo se il browser ha l'API; i
+         * dispositivi USB concessi in una visita precedente si vedono subito, senza chiedere
+         */
+        setupPeriferiche: async function() {
+            const usb = document.querySelector('[data-permission-action="usb"]');
+            const bluetooth = document.querySelector('[data-permission-action="bluetooth"]');
+            if (!usb || !bluetooth) return;
+
+            usb.hidden = !navigator.usb;
+            bluetooth.hidden = !navigator.bluetooth;
+            if (!navigator.usb && !navigator.bluetooth) {
+                document.querySelector('[data-i18n="permessi.periferiche.nonSupportate"]').hidden = false;
+                return;
+            }
+            if (navigator.usb) {
+                try {
+                    const dispositivi = await navigator.usb.getDevices();
+                    if (dispositivi.length > 0) {
+                        PermissionsManager.mostraUsb(dispositivi, 'permessi.periferiche.usbPrecedenti');
+                    }
+                } catch (error) {
+                    logger.warn('[fingerprint-permissions] Dispositivi USB concessi non letti:', error.name);
+                }
+            }
+        },
+
+        requestUsb: async function(button) {
+            const contenitore = document.querySelector('[data-risultato="usb"]');
+            try {
+                button.disabled = true;
+                await navigator.usb.requestDevice({ filters: [] });
+                // Il dispositivo scelto si aggiunge a quelli che il sito vede gia'
+                PermissionsManager.mostraUsb(await navigator.usb.getDevices(),
+                    'permessi.periferiche.usbVisti', 'permessi.periferiche.usbResta');
+                etichetta(button, 'permessi.periferiche.altroUsb');
+            } catch (error) {
+                logger.warn('[fingerprint-permissions] Scelta USB fallita:', error.name);
+                contenitore.innerHTML = error.name === 'NotFoundError'
+                    ? `<p>${esc(t('permessi.periferiche.nessunUsb'))}</p>`
+                    : erroreHtml(error.message);
+            } finally {
+                button.disabled = false;
+            }
+        },
+
+        mostraUsb: function(dispositivi, chiaveTitolo, chiaveNota) {
+            const versione = (major, minor, subminor) => `${major}.${minor}.${subminor}`;
+            const esadecimale = numero => numero.toString(16).padStart(4, '0');
+
+            document.querySelector('[data-risultato="usb"]').innerHTML =
+                `<h4>${esc(t(chiaveTitolo))}</h4>`
+                + dispositivi.map(device => {
+                    const classi = new Set([device.deviceClass]);
+                    device.configurations.forEach(configurazione => configurazione.interfaces.forEach(
+                        interfaccia => interfaccia.alternates.forEach(alt => classi.add(alt.interfaceClass))));
+                    const tipi = [...classi].filter(classe => CLASSI_USB[classe])
+                        .map(classe => t(`permessi.periferiche.classe.${CLASSI_USB[classe]}`));
+                    return perifericaHtml(device.productName || t('permessi.periferiche.senzaNome'), [
+                        ['produttore', device.manufacturerName],
+                        ['seriale', device.serialNumber],
+                        ['codici', `${esadecimale(device.vendorId)}:${esadecimale(device.productId)}`],
+                        ['tipo', tipi.join(', ')],
+                        ['firmware', versione(device.deviceVersionMajor, device.deviceVersionMinor, device.deviceVersionSubminor)],
+                        ['versioneUsb', versione(device.usbVersionMajor, device.usbVersionMinor, device.usbVersionSubminor)]
+                    ]);
+                }).join('')
+                + (chiaveNota ? `<p>${esc(t(chiaveNota))}</p>` : '');
+        },
+
+        requestBluetooth: async function(button) {
+            const contenitore = document.querySelector('[data-risultato="bluetooth"]');
+            let device;
+            try {
+                button.disabled = true;
+                device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['battery_service', 'device_information']
+                });
+            } catch (error) {
+                logger.warn('[fingerprint-permissions] Scelta Bluetooth fallita:', error.name);
+                // Annullare la scelta e Bluetooth spento danno lo stesso errore
+                contenitore.innerHTML = error.name === 'NotFoundError'
+                    ? `<p>${esc(t('permessi.periferiche.nessunBluetooth'))}</p>`
+                    : erroreHtml(error.message);
+                button.disabled = false;
+                return;
+            }
+
+            const nome = device.name || t('permessi.periferiche.senzaNome');
+            contenitore.innerHTML = perifericaHtml(nome, [])
+                + `<p>${esc(t('permessi.periferiche.collegamento'))}</p>`;
+            const righe = await PermissionsManager.datiBluetooth(device);
+            contenitore.innerHTML = perifericaHtml(nome, righe)
+                + (righe.length === 0 ? `<p>${esc(t('permessi.periferiche.nonRisponde'))}</p>` : '');
+            etichetta(button, 'permessi.periferiche.altroBluetooth');
+            button.disabled = false;
+        },
+
+        /**
+         * Batteria, produttore, modello e firmware: solo se il dispositivo accetta il
+         * collegamento e li espone. Il tetto di tempo evita l'attesa di chi non risponde
+         */
+        datiBluetooth: async function(device) {
+            const righe = [];
+            let timer;
+            try {
+                const server = await Promise.race([
+                    device.gatt.connect(),
+                    new Promise((resolve, reject) => {
+                        timer = setTimeout(() => reject(new Error('Timeout')), 10000);
+                    })
+                ]);
+                const leggi = async (servizio, caratteristica) => {
+                    try {
+                        const servizioGatt = await server.getPrimaryService(servizio);
+                        return await (await servizioGatt.getCharacteristic(caratteristica)).readValue();
+                    } catch (error) {
+                        return null;
+                    }
+                };
+
+                const batteria = await leggi('battery_service', 'battery_level');
+                if (batteria) righe.push(['batteria', `${batteria.getUint8(0)}%`]);
+                for (const [campo, caratteristica] of [['produttore', 'manufacturer_name_string'],
+                    ['modello', 'model_number_string'], ['firmware', 'firmware_revision_string']]) {
+                    const valore = await leggi('device_information', caratteristica);
+                    const testo = valore && new TextDecoder().decode(valore).replace(/\0/g, '').trim();
+                    if (testo) righe.push([campo, testo]);
+                }
+            } catch (error) {
+                logger.warn('[fingerprint-permissions] Collegamento Bluetooth fallito:', error.message);
+            } finally {
+                clearTimeout(timer);
+                // Interrompe anche un collegamento ancora in corso
+                device.gatt.disconnect();
+            }
+            return righe;
         }
     };
 

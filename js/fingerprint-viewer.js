@@ -12,7 +12,6 @@
     const CONFIG = {
         storageKey: 'fingerprint-data',
         batteryStorageKey: 'first-battery-reading',
-        apiIpify: 'https://api64.ipify.org?format=json',
         apiIpwho: 'https://ipwho.is/?fields=success,message,city,region,country,connection.isp,connection.asn,timezone.id,timezone.offset',
         stunServers: [
             'stun:stun.l.google.com:19302',
@@ -448,9 +447,9 @@
     }
 
     /**
-     * Rumore sull'audio: un segnale costante a 0.5 deve tornare esatto in ogni campione. Brave,
-     * Safari e Firefox con le protezioni lo alterano; Brave con un rumore fisso per sessione,
-     * che ripetere lo stesso calcolo non svelerebbe.
+     * Rumore sull'audio: un segnale costante a 0.5 deve tornare esatto in ogni campione. Brave e
+     * Safari con le protezioni lo alterano; Brave con un rumore fisso per sessione, che ripetere
+     * lo stesso calcolo non svelerebbe.
      *
      * @returns {Promise<string>} 'Rumore presente', 'Rumore assente' o un valore di errore
      */
@@ -557,7 +556,20 @@
             }
             
             const battery = await navigator.getBattery();
-            
+
+            // Senza batteria il browser risponde come un portatile pieno e col cavo: i due casi
+            // non si distinguono
+            if (battery.level === 1 && battery.charging && battery.chargingTime === 0
+                && battery.dischargingTime === Infinity) {
+                return {
+                    level: '-',
+                    charging: 'Senza batteria o piena',
+                    chargingTime: '-',
+                    dischargingTime: '-',
+                    firstVisit: null
+                };
+            }
+
             const currentReading = {
                 level: `${Math.round(battery.level * 100)}%`,
                 charging: battery.charging ? 'In carica' : 'Scarica',
@@ -671,6 +683,21 @@
                 audioOutputCount: 'Errore raccolta dati',
                 totalDevices: 'Errore raccolta dati'
             };
+        }
+    }
+
+    /**
+     * Presenza del Bluetooth: Chrome, Edge e Opera la dicono senza permesso
+     *
+     * @returns {Promise<string>} 'Presente', 'Assente' o un valore di errore
+     */
+    async function detectBluetooth() {
+        if (!navigator.bluetooth || !navigator.bluetooth.getAvailability) return 'Non disponibile';
+        try {
+            return await navigator.bluetooth.getAvailability() ? 'Presente' : 'Assente';
+        } catch (error) {
+            logger.error('[fingerprint-viewer] Errore Bluetooth:', error);
+            return 'Errore';
         }
     }
 
@@ -806,6 +833,79 @@
                 refreshSection('comportamento');
             }
         }, CONFIG.behaviorTrackingDuration);
+    }
+
+    // Periferiche svelate dai gesti del visitatore, senza permessi: la sezione si ridisegna a
+    // ogni novita'
+    const periferiche = { controller: [], intervalliMouse: [], mouseHz: null, rotella: 0, touchpad: 0, penna: false };
+    const MOUSE_MISURABILE = !!(window.PointerEvent && PointerEvent.prototype.getCoalescedEvents);
+
+    /**
+     * Ascolta controller (dopo la pressione di un tasto), frequenza del mouse, rotella o
+     * touchpad e penna
+     */
+    function trackPeriferiche() {
+        window.addEventListener('gamepadconnected', e => {
+            if (!periferiche.controller.includes(e.gamepad.id)) {
+                periferiche.controller.push(e.gamepad.id);
+                refreshSection('periferiche');
+            }
+        });
+
+        // Gli eventi raggruppati conservano ogni lettura del mouse, anche oltre il ritmo dello
+        // schermo; le pause (oltre 50 ms) non contano
+        let ultimaLettura = null;
+        const mouseHandler = e => {
+            if (e.pointerType !== 'mouse') return;
+            for (const lettura of e.getCoalescedEvents()) {
+                const intervallo = lettura.timeStamp - ultimaLettura;
+                if (ultimaLettura !== null && intervallo > 0 && intervallo < 50) {
+                    periferiche.intervalliMouse.push(intervallo);
+                }
+                ultimaLettura = lettura.timeStamp;
+            }
+            if (periferiche.intervalliMouse.length >= 300) {
+                document.removeEventListener('pointermove', mouseHandler);
+                periferiche.mouseHz = frequenzaMouse(periferiche.intervalliMouse);
+                refreshSection('periferiche');
+            }
+        };
+        if (MOUSE_MISURABILE) {
+            document.addEventListener('pointermove', mouseHandler);
+        }
+
+        // Una tacca della rotella vale 120, o righe intere in Firefox; il touchpad manda passi
+        // piccoli e irregolari. Tre eventi bastano a decidere
+        window.addEventListener('wheel', e => {
+            const passo = e.wheelDeltaY || e.wheelDeltaX;
+            const rotella = e.deltaMode === 1
+                || (passo ? passo % 120 === 0 : Number.isInteger(e.deltaY) && Math.abs(e.deltaY) >= 50);
+            periferiche[rotella ? 'rotella' : 'touchpad']++;
+            if (periferiche.rotella === 3 || periferiche.touchpad === 3) {
+                refreshSection('periferiche');
+            }
+        }, { passive: true });
+
+        document.addEventListener('pointerdown', e => {
+            if (e.pointerType === 'pen' && !periferiche.penna) {
+                periferiche.penna = true;
+                refreshSection('periferiche');
+            }
+        });
+    }
+
+    /**
+     * Frequenza del mouse dagli intervalli fra le letture: il primo quartile, perche' un
+     * movimento lento allunga alcuni intervalli, arrotondato alla frequenza standard piu' vicina
+     *
+     * @param {number[]} intervalli - Millisecondi fra due letture consecutive
+     * @returns {number} Letture al secondo
+     */
+    function frequenzaMouse(intervalli) {
+        const ordinati = [...intervalli].sort((a, b) => a - b);
+        const misurata = 1000 / ordinati[Math.floor(ordinati.length / 4)];
+        return [125, 250, 500, 1000, 2000, 4000, 8000].reduce((vicina, standard) =>
+            Math.abs(Math.log(standard / misurata)) < Math.abs(Math.log(vicina / misurata)) ? standard : vicina);
     }
 
     /**
@@ -1104,13 +1204,14 @@
 
         // Le raccolte che aspettano la rete o un'API lenta partono insieme: in sequenza
         // "Analisi in corso" durava fino a circa 15 secondi, cosi' dura quanto la piu' lenta (FP-07)
-        const [publicIP, luogoIP, webrtcData, audioFingerprint, audioNoise, mediaDevices, extraSections] = await Promise.all([
+        const [publicIP, luogoIP, webrtcData, audioFingerprint, audioNoise, mediaDevices, bluetooth, extraSections] = await Promise.all([
             fetchPublicIP(),
             fetchIPLocation(),
             detectWebRTCLeak(),
             conTettoAudio(generateAudioFingerprint(), 'Impronta audio'),
             conTettoAudio(detectAudioNoise(), 'Rumore audio'),
             getMediaDevices(),
+            detectBluetooth(),
             // Tecniche aggiuntive di fingerprint-extra.js, solo mostrate: fuori dall'ID persistente
             window.FingerprintExtra.collect()
         ]);
@@ -1144,6 +1245,7 @@
             mediaDevicesAudioInput: mediaDevices.audioInputCount,
             mediaDevicesAudioOutput: mediaDevices.audioOutputCount,
             mediaDevicesLabels: mediaDevices.hasDetailedLabels,
+            bluetooth: bluetooth,
             sensorDeviceMotion: deviceSensors.deviceMotionEvent,
             sensorDeviceOrientation: deviceSensors.deviceOrientationEvent,
             sensorAccelerometer: deviceSensors.accelerometer,
@@ -1218,7 +1320,7 @@
         ['riconosce', ['visite', 'unicita']],
         ['rete', ['ip', 'fuso', 'tastiera', 'reteDichiarata', 'reteMisurata']],
         ['dispositivo', ['browser', 'clientHints', 'hardware', 'schermi', 'schedaVideo', 'batteria',
-            'multimedia', 'sensori']],
+            'multimedia', 'periferiche', 'sensori']],
         ['impronte', ['canvas', 'font', 'voci', 'calcoli']],
         ['abitudini', ['preferenze', 'spazio', 'pubblicita', 'comportamento']]
     ];
@@ -1230,6 +1332,8 @@
         'non disponibile': 'valore.nonDisponibile',
         'non specificato': 'valore.nonSpecificato',
         'Disponibile': 'valore.disponibile',
+        'Presente': 'valore.presente',
+        'Assente': 'valore.assente',
         'Errore': 'valore.errore',
         'Errore raccolta': 'valore.errore',
         'Errore raccolta dati': 'valore.errore',
@@ -1239,6 +1343,7 @@
         'In carica': 'valore.inCarica',
         'Scarica': 'valore.scarica',
         'Non in carica': 'valore.nonInCarica',
+        'Senza batteria o piena': 'valore.senzaBatteria',
         'Raccolta in corso...': 'valore.inCorso',
         'Nessun movimento': 'valore.nessunMovimento',
         'Rumore assente': 'valore.rumoreAssente',
@@ -1325,7 +1430,7 @@
             if (data.mediaDevicesLabels) {
                 return String(quanti);
             }
-            return t(quanti > 0 ? 'valore.presente' : puoNonElencare ? 'valore.nonElencato' : 'valore.assente');
+            return t(quanti > 0 ? 'valore.almenoUno' : puoNonElencare ? 'valore.nonElencato' : 'valore.assente');
         };
 
         const extra = id => data.extraSections[id];
@@ -1391,7 +1496,8 @@
                 { voce: 'profondita', value: raccolto(data.colorDepth) },
                 { voce: 'pixelRatio', value: data.pixelRatio },
                 { voce: 'core', value: raccolto(data.hardwareConcurrency) },
-                { voce: 'tocco', value: data.maxTouchPoints }
+                { voce: 'tocco', value: data.maxTouchPoints },
+                { voce: 'bluetooth', value: raccolto(data.bluetooth) }
             ],
             schermi: extra('schermi'),
             schedaVideo: extra('schedaVideo'),
@@ -1408,6 +1514,20 @@
                 { voce: 'microfono', value: dispositivo(data.mediaDevicesAudioInput) },
                 // Firefox e Safari non elencano gli altoparlanti prima del permesso
                 { voce: 'altoparlante', value: dispositivo(data.mediaDevicesAudioOutput, true) }
+            ],
+            periferiche: [
+                { voce: 'controller', value: !navigator.getGamepads ? nonDisponibile
+                    : periferiche.controller.length > 0 ? periferiche.controller.join(', ')
+                    : t('sezione.periferiche.attesaController') },
+                { voce: 'mouse', value: !MOUSE_MISURABILE ? nonDisponibile
+                    : periferiche.mouseHz ? t(periferiche.mouseHz >= 500 ? 'sezione.periferiche.mouseGioco'
+                        : 'sezione.periferiche.mouseNormale', { hz: numero(periferiche.mouseHz, 0) })
+                    : t('sezione.periferiche.attesaMouse') },
+                { voce: 'scorrimento', value: t(periferiche.rotella >= 3 && periferiche.touchpad >= 3 ? 'sezione.periferiche.entrambi'
+                    : periferiche.touchpad >= 3 ? 'sezione.periferiche.touchpad'
+                    : periferiche.rotella >= 3 ? 'sezione.periferiche.rotella'
+                    : 'sezione.periferiche.attesaScorrimento') },
+                { voce: 'penna', value: t(periferiche.penna ? 'sezione.periferiche.pennaSi' : 'sezione.periferiche.attesaPenna') }
             ],
             sensori: [
                 { voce: 'motion', value: raccolto(data.sensorDeviceMotion) },
@@ -1558,6 +1678,7 @@
     async function init() {
         logger.log('[fingerprint-viewer] Inizializzazione');
 
+        trackPeriferiche();
         try {
             const [fingerprint] = await Promise.all([collectFingerprint(), I18n.ready]);
             displayFingerprint(fingerprint);

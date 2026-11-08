@@ -15,11 +15,12 @@ Senza chiedere niente, appena la pagina si apre:
 - IP pubblico, con luogo e fornitore di rete, e indirizzi che escono da WebRTC
 - indizio di VPN: IP di un datacenter, oppure fuso del sistema che non segna la stessa ora di
   quello dell'IP
-- batteria, presenza di telecamera, microfono e altoparlanti, sensori
+- batteria, presenza di telecamera, microfono, altoparlanti e Bluetooth, sensori
 - Client Hints, font installati, voci di sintesi vocale, preferenze del sistema, spazio del
   browser e navigazione privata, blocco della pubblicita', tastiera e formati regionali, calcoli ed
   emoji, schermi e finestra
 - movimenti del mouse, clic, scorrimento e tasti premuti sulla pagina
+- periferiche svelate dai gesti: controller da gioco, frequenza del mouse, rotella o touchpad, penna
 - velocita' reale della connessione, scaricando fino a 10 MB dal sito stesso
 
 La pagina e' in italiano o in inglese, con un orologio nel fuso orario che scegli.
@@ -31,6 +32,7 @@ Con un permesso, una scheda alla volta:
 - sensori di movimento in tempo reale
 - condivisione dello schermo
 - testo negli appunti
+- dispositivi USB e Bluetooth scelti dal visitatore: numero di serie, firmware, batteria, modello
 
 ## Cosa esce dal browser
 

@@ -176,6 +176,32 @@
                 </div>
             </details>
 
+            <!-- Card 6: Periferiche USB e Bluetooth -->
+            <details class="permission-card">
+                <summary data-i18n="permessi.periferiche.titolo"></summary>
+                <div>
+                    <p data-i18n="permessi.periferiche.testo"></p>
+                    <p class="fp-section-tag" data-i18n="permessi.periferiche.tag"></p>
+                    <button
+                        type="button"
+                        class="btn-verde"
+                        data-permission-action="usb"
+                        data-i18n="permessi.periferiche.usb">
+                    </button>
+                    <button
+                        type="button"
+                        class="btn-verde"
+                        data-permission-action="bluetooth"
+                        data-i18n="permessi.periferiche.bluetooth">
+                    </button>
+                    <div class="permission-result">
+                        <p data-i18n="permessi.periferiche.nonSupportate" hidden></p>
+                        <div data-risultato="usb"></div>
+                        <div data-risultato="bluetooth"></div>
+                    </div>
+                </div>
+            </details>
+
             <!-- Avviso finale -->
             <div class="fp-warning">
                 <strong data-i18n="permessi.nota.titolo"></strong>

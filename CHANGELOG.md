@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-08
+- Nuova scheda "Periferiche USB e Bluetooth": del dispositivo scelto la pagina legge nome,
+  produttore, numero di serie e firmware (USB), batteria e modello (Bluetooth); un dispositivo USB
+  concesso si rivede alla visita dopo senza chiedere
+- Nuova sezione "Periferiche senza permesso": dai gesti sulla pagina riconosce controller da gioco,
+  mouse da gioco, touchpad e penna
+- Presenza del Bluetooth fra i dati senza permesso
+- Un computer senza batteria non appare piu' come "100% in carica"; telecamera e microfono dicono
+  "almeno uno", perche' contano anche i dispositivi virtuali e quelli spenti
+
 ## 2026-11-07
 - Dall'IP la pagina ricava citta' e fornitore di rete (servizio ipwho.is) e segnala una probabile
   VPN quando l'IP e' di un datacenter o il fuso del sistema non segna la stessa ora di quello dell'IP
