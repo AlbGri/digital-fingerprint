@@ -10,7 +10,6 @@
     'use strict';
 
     const CONFIG = {
-        storageKey: 'fingerprint-data',
         batteryStorageKey: 'first-battery-reading',
         apiIpwho: 'https://ipwho.is/?fields=success,message,city,region,country,connection.isp,connection.asn,timezone.id,timezone.offset',
         stunServers: [
