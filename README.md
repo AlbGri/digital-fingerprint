@@ -8,6 +8,7 @@ Sito: https://df.albgri.com/ (anche https://albgri.github.io/digital-fingerprint
 ## Cosa mostra
 
 Senza chiedere niente, appena la pagina si apre:
+- un ritratto in poche frasi: quello che chi raccoglie questi dati ne dedurrebbe
 - un ID ricavato da nove valori del browser e dell'hardware (quelli con l'asterisco), con una stima
   di quanto ti distingue dagli altri, e le visite precedenti in cui ti ha riconosciuto
 - browser, lingue, schermo, processore, scheda video (WebGL e WebGPU), impronte canvas e audio,
@@ -21,6 +22,9 @@ Senza chiedere niente, appena la pagina si apre:
   emoji, schermi e finestra
 - movimenti del mouse, clic, scorrimento e tasti premuti sulla pagina
 - periferiche svelate dai gesti: controller da gioco, frequenza del mouse, rotella o touchpad, penna
+- estensioni installate: portafogli di criptovalute, strumenti per programmatori, Grammarly e Dark
+  Reader dalle tracce nella pagina; su Chrome ed Edge altre 1157 dai loro file interni (elenco
+  del 2022 di [Extension Fingerprints](https://github.com/yuesir/extension-fingerprints), MIT)
 - velocita' reale della connessione, scaricando fino a 10 MB dal sito stesso
 
 La pagina e' in italiano o in inglese, con un orologio nel fuso orario che scegli.
@@ -44,7 +48,8 @@ Niente verso l'autore: nessun analytics, nessun cookie, nessun server suo. La pa
 - `nominatim.openstreetmap.org`, solo dopo il permesso di posizione, per trasformare le coordinate
   in un indirizzo
 
-Questi servizi vedono il tuo IP quando li contatti, e l'hosting (GitHub Pages, piu' Cloudflare per
+La ricerca delle estensioni interroga indirizzi `chrome-extension://`, interni al browser: non esce
+niente. Questi servizi vedono il tuo IP quando li contatti, e l'hosting (GitHub Pages, piu' Cloudflare per
 df.albgri.com) riceve le normali richieste di ogni sito.
 
 ID, cronologia delle visite e prima lettura della batteria restano nel localStorage del tuo

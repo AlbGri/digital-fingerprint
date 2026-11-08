@@ -1321,7 +1321,7 @@
         ['dispositivo', ['browser', 'clientHints', 'hardware', 'schermi', 'schedaVideo', 'batteria',
             'multimedia', 'periferiche', 'sensori']],
         ['impronte', ['canvas', 'font', 'voci', 'calcoli']],
-        ['abitudini', ['preferenze', 'spazio', 'pubblicita', 'comportamento']]
+        ['abitudini', ['preferenze', 'spazio', 'pubblicita', 'estensioni', 'comportamento']]
     ];
 
     // Valori fissi scritti dalla raccolta: si traducono solo quando si mostrano, perche' alcuni
@@ -1550,6 +1550,7 @@
             preferenze: extra('preferenze'),
             spazio: extra('spazio'),
             pubblicita: extra('pubblicita'),
+            estensioni: extra('estensioni'),
             comportamento: [
                 { voce: 'mouse', value: comportamento ? raccolto(comportamento.mouseSpeed) : inCorso },
                 { voce: 'clic', value: comportamento ? comportamento.clickCount : inCorso },
@@ -1561,6 +1562,143 @@
 
     // Chiavi delle righe che entrano nell'ID: si segnano con (*)
     const CHIAVI_ID = new Set(Object.values(COMPONENTI_ID).map(([, chiave]) => chiave));
+
+    // Indizi dei font che svelano un programma installato; gli altri dicono solo il sistema
+    const INDIZI_PROGRAMMI = ['office', 'microsoft365', 'libreoffice', 'adobe', 'programmatori', 'jetbrains'];
+
+    /**
+     * Ritratto: le conclusioni che chi raccoglie questi dati ne trarrebbe, in poche frasi. Usa
+     * solo i dati gia' raccolti e salta le frasi a cui mancano
+     *
+     * @param {Object} data - Dati raccolti
+     * @returns {string[]} Frasi nella lingua scelta
+     */
+    function ritratto(data) {
+        const t = I18n.t;
+        const elenco = parti => new Intl.ListFormat(I18n.getLanguage(), { type: 'conjunction' }).format(parti);
+        const voce = (sezione, nome) => {
+            const item = (data.extraSections[sezione] || []).find(i => i.voce === nome);
+            return item ? item.value : null;
+        };
+        const ua = navigator.userAgent;
+        const frasi = [];
+
+        // Dispositivo, sistema e browser
+        const formato = typeof voce('clientHints', 'tipo') === 'string' ? voce('clientHints', 'tipo') : '';
+        let dispositivo = 'computer';
+        if (/Mobile/.test(formato) || /Mobi/.test(ua)) {
+            dispositivo = 'telefono';
+        } else if (/Tablet/.test(formato) || /iPad|Android/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) {
+            dispositivo = 'tablet';
+        } else if (periferiche.touchpad >= 3 || /%$/.test(data.batteryLevel)) {
+            dispositivo = 'portatile';
+        } else if (data.batteryCharging === 'Senza batteria o piena') {
+            dispositivo = 'fisso';
+        }
+        const sistemaHints = voce('clientHints', 'sistema');
+        let sistema = sistemaHints && sistemaHints.i18n ? I18n.resolve(sistemaHints.vars.nota)
+            : typeof sistemaHints === 'string' ? sistemaHints.replace(/ (\d+)[\d.]*$/, ' $1').trim() : null;
+        if (!sistema) {
+            const noti = [[/Windows/, 'Windows'], [/iPhone|iPad/, 'iOS'], [/Mac OS X/, 'macOS'],
+                [/Android/, 'Android'], [/CrOS/, 'ChromeOS'], [/Linux/, 'Linux']];
+            const trovato = noti.find(([regola]) => regola.test(ua));
+            sistema = trovato ? trovato[1] : t('ritratto.sistemaRaro');
+        }
+        const browser = detectBrowser();
+        frasi.push(t('ritratto.dispositivo', {
+            dispositivo: t(`ritratto.tipo.${dispositivo}`),
+            sistema: sistema,
+            browser: browser === 'Altro' ? t('ritratto.browserRaro') : browser
+        }));
+
+        // Scheda video, processore e schermo
+        const renderer = String(data.webglRenderer || '');
+        const gpu = (renderer.startsWith('ANGLE (') ? renderer.slice(7).split(', ')[1] || '' : renderer)
+            .replace('ANGLE Metal Renderer: ', '').replace(/ \(0x[0-9a-f]+\).*$/i, '')
+            .replace(/ Direct3D.*$/, '').replace(/\((R|TM)\)/g, '').trim();
+        const hardware = [];
+        if (gpu && !/SwiftShader|llvmpipe|Basic Render|^Non |^Errore/i.test(gpu)) {
+            hardware.push(t('ritratto.gpu', { gpu: gpu }));
+        }
+        if (typeof data.hardwareConcurrency === 'number') {
+            hardware.push(t('ritratto.core', { n: data.hardwareConcurrency }));
+        }
+        const piuMonitor = voce('schermi', 'piuMonitor');
+        hardware.push(t(piuMonitor && piuMonitor.i18n === 'valore.si' ? 'ritratto.schermoDue' : 'ritratto.schermo',
+            { risoluzione: data.screenResolution.replace('x', ' x ') }));
+        frasi.push(t('ritratto.hardware', { elenco: elenco(hardware) }));
+
+        // Periferiche svelate dai gesti; il touchpad e' gia' nel portatile
+        const usate = [];
+        if (periferiche.mouseHz >= 500) usate.push(t('ritratto.mouseGioco'));
+        if (periferiche.controller.length > 0) usate.push(t('ritratto.controller'));
+        if (periferiche.penna) usate.push(t('ritratto.penna'));
+        if (usate.length > 0) {
+            frasi.push(t('ritratto.periferiche', { elenco: elenco(usate) }));
+        }
+
+        // Rete, luogo e VPN
+        const luogo = data.luogoIP;
+        if (!luogo.errore) {
+            const chiave = data.vpn === 'VPN nessun indizio' ? 'ritratto.rete'
+                : data.vpn === 'Fuso falsato' ? 'ritratto.reteFusoFalsato' : 'ritratto.reteVpn';
+            frasi.push(t(chiave, { fornitore: luogo.fornitore, posizione: luogo.posizione }));
+        }
+
+        // Tastiera e lingua
+        const layout = voce('tastiera', 'layout');
+        const lingua = new Intl.DisplayNames([I18n.getLanguage()], { type: 'language' }).of(data.language);
+        frasi.push(layout && layout.i18n && layout.i18n.startsWith('tastiera.') && layout.i18n !== 'tastiera.altro'
+            ? t('ritratto.tastiera', { tastiera: I18n.resolve(layout), lingua: lingua })
+            : t('ritratto.lingua', { lingua: lingua }));
+
+        // Programmi svelati dai font
+        const indizi = voce('font', 'indizi');
+        const programmi = (Array.isArray(indizi) ? indizi : [])
+            .filter(indizio => INDIZI_PROGRAMMI.includes(indizio.i18n.replace('indizio.', '')))
+            .map(indizio => I18n.resolve(indizio));
+        if (programmi.length > 0) {
+            frasi.push(t('ritratto.programmi', { elenco: elenco(programmi) }));
+        }
+
+        // Estensioni: i portafogli a parte, perche' dicono che hai criptovalute
+        const portafogli = voce('estensioni', 'portafogli');
+        if (Array.isArray(portafogli)) {
+            frasi.push(t('ritratto.portafogli', { elenco: elenco(portafogli.map(I18n.resolve)) }));
+        }
+        const altreEstensioni = ['sviluppo', 'segni', 'file']
+            .flatMap(nome => Array.isArray(voce('estensioni', nome)) ? voce('estensioni', nome) : []);
+        if (altreEstensioni.length > 0) {
+            frasi.push(t('ritratto.estensioni', { elenco: elenco([...new Set(altreEstensioni)]) }));
+        }
+
+        // Pubblicita' e tema
+        const blocco = voce('pubblicita', 'esito');
+        const tema = voce('preferenze', 'tema');
+        if (blocco && blocco.i18n) {
+            frasi.push(t(blocco.i18n === 'valore.bloccoAttivo' ? 'ritratto.bloccoSi' : 'ritratto.bloccoNo', {
+                tema: tema && tema.i18n === 'valore.scuro' ? t('ritratto.temaScuro') : ''
+            }));
+        }
+
+        // Visite precedenti
+        const storia = data.trackingHistory;
+        frasi.push(storia.visitCount > 1
+            ? t('ritratto.visite', { n: storia.visitCount, data: dataOra(storia.firstVisit) })
+            : t('ritratto.primaVisita'));
+
+        return frasi;
+    }
+
+    function ritrattoHtml(data) {
+        const esc = FingerprintUtils.escapeHtml;
+        return `
+            <div class="fp-ritratto" data-ritratto>
+                <h2 class="fp-ritratto-titolo">${esc(I18n.t('ritratto.titolo'))}</h2>
+                <p>${esc(ritratto(data).join(' '))}</p>
+                <p class="fp-section-note">${esc(I18n.t('ritratto.nota'))}</p>
+            </div>`;
+    }
 
     /**
      * HTML di una sezione: titolo, spiegazione, riga dei permessi e righe dei valori
@@ -1607,6 +1745,11 @@
         }
         sezione.outerHTML = renderSection(id, formatFingerprintData(cachedFingerprint)[id]);
         updateSpeedTestProgress(speedProgress);
+        // Batteria e periferiche arrivano dopo e cambiano anche il ritratto
+        const ritrattoAttuale = document.querySelector('[data-ritratto]');
+        if (ritrattoAttuale) {
+            ritrattoAttuale.outerHTML = ritrattoHtml(cachedFingerprint);
+        }
     }
 
     /**
@@ -1651,7 +1794,7 @@
             ${ids.map(id => renderSection(id, sezioni[id])).join('')}
         `).join('');
 
-        container.innerHTML = warningHTML + invalidWarningHTML + gruppiHTML;
+        container.innerHTML = ritrattoHtml(data) + warningHTML + invalidWarningHTML + gruppiHTML;
         updateSpeedTestProgress(speedProgress);
         logger.log('[fingerprint-viewer] Fingerprint visualizzato');
     }

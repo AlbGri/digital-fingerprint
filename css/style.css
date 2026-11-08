@@ -322,6 +322,21 @@
     display: inline;
 }
 
+/* Ritratto in cima: le conclusioni prima dei dati da cui vengono */
+.fp-ritratto {
+    padding: 14px 16px;
+    margin-block-end: 16px;
+    background: var(--color-code-bg);
+    border-inline-start: 4px solid var(--color-primary);
+    border-radius: var(--border-radius);
+    line-height: 1.6;
+}
+
+.fp-ritratto-titolo {
+    font-size: 17px;
+    margin-block: 0 8px;
+}
+
 .fp-section {
     margin-block-end: 20px;
 }

@@ -1,6 +1,10 @@
 # Changelog
 
 ## 2026-11-08
+- In cima alla pagina un ritratto: poche frasi con quello che chi raccoglie questi dati ne
+  dedurrebbe
+- Nuova sezione "Estensioni installate": portafogli di criptovalute, strumenti per programmatori
+  ed estensioni riconosciute fra oltre mille, senza permessi
 - Nuova scheda "Periferiche USB e Bluetooth": del dispositivo scelto la pagina legge nome,
   produttore, numero di serie e firmware (USB), batteria e modello (Bluetooth); un dispositivo USB
   concesso si rivede alla visita dopo senza chiedere

@@ -313,6 +313,72 @@
     }
 
     /**
+     * Estensioni installate, in due modi. Le tracce nella pagina: i portafogli di criptovalute
+     * si annunciano a ogni pagina che lo chiede (standard EIP-6963), gli strumenti per
+     * programmatori aggiungono un oggetto globale, Grammarly e Dark Reader segnano la pagina. E
+     * i file interni che molte estensioni lasciano leggere a ogni pagina.
+     */
+    async function estensioni() {
+        const portafogli = new Set();
+        const annuncio = e => portafogli.add(e.detail.info.name);
+        window.addEventListener('eip6963:announceProvider', annuncio);
+        window.dispatchEvent(new Event('eip6963:requestProvider'));
+        const trovateDaiFile = sondaFile();
+        // Il tempo per annunciarsi e per segnare la pagina, cosa che le estensioni fanno dopo il
+        // caricamento
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        window.removeEventListener('eip6963:announceProvider', annuncio);
+
+        // Portafogli che non si annunciano; quello di Brave c'e' in ogni Brave, quindi non dice niente
+        const ethereum = window.ethereum;
+        if (portafogli.size === 0 && ethereum && !ethereum.isBraveWallet) {
+            portafogli.add(ethereum.isMetaMask ? 'MetaMask' : ethereum.isCoinbaseWallet ? 'Coinbase Wallet'
+                : m('valore.portafoglioIgnoto'));
+        }
+        if (window.phantom && window.phantom.solana) portafogli.add('Phantom');
+        if (window.solflare) portafogli.add('Solflare');
+        portafogli.delete('Brave Wallet');
+
+        const sviluppo = [
+            ['__REACT_DEVTOOLS_GLOBAL_HOOK__', 'React Developer Tools'],
+            ['__VUE_DEVTOOLS_GLOBAL_HOOK__', 'Vue.js devtools'],
+            ['__REDUX_DEVTOOLS_EXTENSION__', 'Redux DevTools']
+        ].filter(([oggetto]) => oggetto in window).map(([, nome]) => nome);
+
+        const segni = [];
+        if (document.body.hasAttribute('data-gr-ext-installed') || document.body.hasAttribute('data-new-gr-c-s-check-loaded')) {
+            segni.push('Grammarly');
+        }
+        if (document.querySelector('meta[name="darkreader"], style.darkreader')) {
+            segni.push('Dark Reader');
+        }
+
+        const daiFile = await trovateDaiFile;
+        return [
+            { voce: 'portafogli', value: portafogli.size ? [...portafogli] : NESSUNO },
+            { voce: 'sviluppo', value: sviluppo.length ? sviluppo : NESSUNO },
+            { voce: 'segni', value: segni.length ? segni : NESSUNA },
+            { voce: 'file', value: daiFile === null ? SOLO_CHROMIUM : daiFile.length ? daiFile
+                : m('sezione.estensioni.nessunaFra', { n: window.EstensioniNote.length }) }
+        ];
+    }
+
+    /**
+     * Prova a leggere un file di ogni estensione dell'elenco: risponde solo se e' installata.
+     * Solo Chrome, Edge e simili: Firefox cambia l'indirizzo dei file a ogni installazione
+     *
+     * @returns {Promise<string[]|null>} Nomi delle estensioni trovate, null se non si puo' cercare
+     */
+    async function sondaFile() {
+        if (!window.chrome || /Firefox/.test(navigator.userAgent) || !window.EstensioniNote) {
+            return null;
+        }
+        const esiti = await Promise.all(window.EstensioniNote.map(([id, file, nome]) =>
+            fetch(`chrome-extension://${id}/${file}`).then(() => nome, () => null)));
+        return esiti.filter(Boolean);
+    }
+
+    /**
      * Layout della tastiera (Chrome ed Edge) e formati regionali: insieme dicono il paese meglio
      * della lingua dichiarata, che spesso resta inglese.
      */
@@ -440,6 +506,7 @@
         ['preferenze', preferenzeSistema],
         ['spazio', spazioBrowser],
         ['pubblicita', bloccoPubblicita],
+        ['estensioni', estensioni],
         ['tastiera', tastieraFormati],
         ['calcoli', calcoliEmoji],
         ['schermi', schermi]
