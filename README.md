@@ -27,6 +27,10 @@ Senza chiedere niente, appena la pagina si apre:
   del 2022 di [Extension Fingerprints](https://github.com/yuesir/extension-fingerprints), MIT)
 - velocita' reale della connessione, scaricando fino a 10 MB dal sito stesso
 
+Una seconda pagina, "E se qualcuno salvasse questi dati?" (`server/`), spiega cosa ne farebbe chi
+li conserva su un server: profili che sopravvivono alla pulizia, supercookie, collegamento fra
+siti e dispositivi, compravendita fra data broker, e come difendersi.
+
 La pagina e' in italiano o in inglese, con un orologio nel fuso orario che scegli.
 
 Con un permesso, una scheda alla volta:

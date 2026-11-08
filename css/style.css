@@ -69,6 +69,11 @@
     button, .btn-verde {
         cursor: pointer;
     }
+
+    /* Pulsanti con il carattere della pagina: il browser darebbe il suo, diverso dai link */
+    button {
+        font: inherit;
+    }
     
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -128,7 +133,7 @@
         inset-block-start: 0;
         inset-inline-start: 0;
         /* spostato della sua altezza, qualunque sia: un valore fisso lo lasciava sporgere */
-        transform: translateY(-100%);
+        transform: translateY(calc(-100% - 4px));
         background: var(--color-primary);
         color: white;
         padding-block: 8px;
@@ -333,8 +338,47 @@
 }
 
 .fp-ritratto-titolo {
-    font-size: 17px;
+    font-size: 19px;
     margin-block: 0 8px;
+}
+
+.fp-ritratto-testo {
+    font-size: 16px;
+}
+
+/* Pulsante verso la pagina server/, sotto il ritratto: come quello dei permessi */
+.fp-server-link {
+    text-align: center;
+    margin-block: 0 20px;
+}
+
+.fp-server-link a {
+    display: inline-block;
+    text-decoration: none;
+}
+
+/* Pagina server/: titolo lungo un po' piu' piccolo, capitoli brevi da leggere */
+.server-pagina h1 {
+    font-size: 2em;
+}
+
+.server-pagina h2 {
+    font-size: 20px;
+    margin-block: 26px 6px;
+}
+
+.server-pagina p,
+.server-pagina li {
+    line-height: 1.6;
+}
+
+.server-pagina a {
+    color: var(--color-primary);
+}
+
+.torna {
+    display: inline-block;
+    margin-block-end: 12px;
 }
 
 .fp-section {
@@ -545,7 +589,7 @@
 /* Titolo sezione permessi - Allineamento centrale */
 #advanced-permissions-section h2 {
     text-align: center;
-    color: var(--color-error);
+    color: var(--color-text);
     margin-bottom: 10px;
 }
 
@@ -571,7 +615,8 @@
 
 /* Pulsante principale per mostrare sezione permessi
    Dimensioni maggiorate per visibilita */
-.permissions-toggle-button {
+.permissions-toggle-button,
+.fp-server-link a {
     font-size: 1.1em;
     padding: 15px 30px;
 }

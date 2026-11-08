@@ -1617,7 +1617,7 @@
             .replace('ANGLE Metal Renderer: ', '').replace(/ \(0x[0-9a-f]+\).*$/i, '')
             .replace(/ Direct3D.*$/, '').replace(/\((R|TM)\)/g, '').trim();
         const hardware = [];
-        if (gpu && !/SwiftShader|llvmpipe|Basic Render|^Non |^Errore/i.test(gpu)) {
+        if (gpu && isComponentValid('webglRenderer', data.webglRenderer)) {
             hardware.push(t('ritratto.gpu', { gpu: gpu }));
         }
         if (typeof data.hardwareConcurrency === 'number') {
@@ -1627,6 +1627,18 @@
         hardware.push(t(piuMonitor && piuMonitor.i18n === 'valore.si' ? 'ritratto.schermoDue' : 'ritratto.schermo',
             { risoluzione: data.screenResolution.replace('x', ' x ') }));
         frasi.push(t('ritratto.hardware', { elenco: elenco(hardware) }));
+
+        // Difese del browser: nomi generici al posto della scheda video, canvas o audio
+        // alterati, fuso UTC come Tor. Una scheda video assente (disegno software) non e' una difesa
+        const falsati = [];
+        if (/^(Mozilla|WebKit)/.test(data.webglRenderer)) falsati.push('schedaVideo');
+        if (!['Errore', 'Non disponibile'].includes(data.canvasFingerprint)
+            && !isComponentValid('canvasFingerprint', data.canvasFingerprint)) falsati.push('canvas');
+        if (data.audioNoise === 'Rumore presente') falsati.push('audio');
+        if (['UTC', 'Etc/UTC'].includes(data.timezone)) falsati.push('fuso');
+        if (falsati.length > 0) {
+            frasi.push(t('ritratto.difese', { elenco: elenco(falsati.map(f => t(`ritratto.falsato.${f}`))) }));
+        }
 
         // Periferiche svelate dai gesti; il touchpad e' gia' nel portatile
         const usate = [];
@@ -1643,6 +1655,8 @@
             const chiave = data.vpn === 'VPN nessun indizio' ? 'ritratto.rete'
                 : data.vpn === 'Fuso falsato' ? 'ritratto.reteFusoFalsato' : 'ritratto.reteVpn';
             frasi.push(t(chiave, { fornitore: luogo.fornitore, posizione: luogo.posizione }));
+        } else {
+            frasi.push(t(luogo.errore === 'Limite del servizio' ? 'ritratto.reteLimite' : 'ritratto.reteBloccata'));
         }
 
         // Tastiera e lingua
@@ -1695,7 +1709,7 @@
         return `
             <div class="fp-ritratto" data-ritratto>
                 <h2 class="fp-ritratto-titolo">${esc(I18n.t('ritratto.titolo'))}</h2>
-                <p>${esc(ritratto(data).join(' '))}</p>
+                <p class="fp-ritratto-testo">${esc(ritratto(data).join(' '))}</p>
                 <p class="fp-section-note">${esc(I18n.t('ritratto.nota'))}</p>
             </div>`;
     }
@@ -1794,7 +1808,8 @@
             ${ids.map(id => renderSection(id, sezioni[id])).join('')}
         `).join('');
 
-        container.innerHTML = ritrattoHtml(data) + warningHTML + invalidWarningHTML + gruppiHTML;
+        document.getElementById('fp-ritratto').innerHTML = ritrattoHtml(data);
+        container.innerHTML = warningHTML + invalidWarningHTML + gruppiHTML;
         updateSpeedTestProgress(speedProgress);
         logger.log('[fingerprint-viewer] Fingerprint visualizzato');
     }

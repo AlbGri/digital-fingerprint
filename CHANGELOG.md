@@ -1,6 +1,12 @@
 # Changelog
 
 ## 2026-11-08
+- Pagina nuova "E se qualcuno salvasse questi dati?" (df.albgri.com/server/): cosa ne farebbe
+  chi ha un server, il supercookie, la compravendita dei profili e come difendersi, con le fonti
+- Il ritratto dice quando il browser nasconde o falsa dei dati, e quando non si e' visto da dove
+  ti colleghi
+- Pulsanti e titoli piu' coerenti: stesso carattere ovunque, e il titolo della sezione con i
+  permessi non e' piu' rosso
 - In cima alla pagina un ritratto: poche frasi con quello che chi raccoglie questi dati ne
   dedurrebbe
 - Nuova sezione "Estensioni installate": portafogli di criptovalute, strumenti per programmatori

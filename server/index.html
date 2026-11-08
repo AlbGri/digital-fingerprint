@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="it">
+<!--
+  File: server/index.html
+  Author: AlbGri
+  Copyright: (c) 2026 Alberto G. - Licensed under AGPL-3.0
+  Created: 2026-11-08
+  Description: Cosa farebbe con questi dati chi li salva su un server
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Profilo di visibilita' "solo col link": l'unica misura che vale anche su github.io -->
+    <meta name="robots" content="noindex">
+
+    <meta name="referrer" content="no-referrer">
+
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self';
+        connect-src 'self';
+        style-src 'self';
+        img-src 'self' data:;
+        frame-src 'none';
+        font-src 'self';
+        base-uri 'self';
+        upgrade-insecure-requests
+    ">
+
+    <title data-i18n="server.titolo">Digital Fingerprint</title>
+
+    <link rel="license" href="https://www.gnu.org/licenses/agpl-3.0.html">
+
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="stylesheet" href="../css/style.css">
+
+    <script src="../js/i18n.js" defer></script>
+    <script src="../js/clock.js" defer></script>
+    <script src="../js/torna.js" defer></script>
+</head>
+<body>
+    <main class="form-container server-pagina">
+        <div class="top-bar">
+            <button id="clock" type="button" class="clock" aria-controls="timezone-select"></button>
+            <button id="language-toggle" type="button" class="language-toggle"></button>
+            <select id="timezone-select" class="timezone-select" hidden></select>
+        </div>
+
+        <a href="../" class="torna" data-torna data-i18n="server.torna"></a>
+
+        <h1 data-i18n="server.titolo"></h1>
+        <p data-i18n="server.intro"></p>
+
+        <h2 data-i18n="server.c1.titolo"></h2>
+        <p data-i18n="server.c1.testo"></p>
+
+        <h2 data-i18n="server.c2.titolo"></h2>
+        <p data-i18n="server.c2.testo"></p>
+
+        <h2 data-i18n="server.c3.titolo"></h2>
+        <p data-i18n="server.c3.testo"></p>
+
+        <h2 data-i18n="server.c4.titolo"></h2>
+        <p data-i18n="server.c4.testo"></p>
+
+        <h2 data-i18n="server.c5.titolo"></h2>
+        <p data-i18n="server.c5.testo"></p>
+
+        <h2 data-i18n="server.c6.titolo"></h2>
+        <ul>
+            <li data-i18n="server.c6.browser"></li>
+            <li data-i18n="server.c6.blocco"></li>
+            <li data-i18n="server.c6.estensioni"></li>
+            <li data-i18n="server.c6.vpn"></li>
+            <li data-i18n="server.c6.gdpr"></li>
+        </ul>
+
+        <h2 data-i18n="server.fonti"></h2>
+        <ul>
+            <li><a href="https://iccl.ie/news/iccl-report-on-the-scale-of-real-time-bidding-data-broadcasts-in-the-u-s-and-europe" rel="noopener" data-i18n="server.fonti.iccl"></a></li>
+            <li><a href="https://www.ftc.gov/news-events/news/press-releases/2024/02/ftc-order-will-ban-avast-selling-browsing-data-advertising-purposes-require-it-pay-165-million-over" rel="noopener" data-i18n="server.fonti.avast"></a></li>
+            <li><a href="https://www.ftc.gov/news-events/news/press-releases/2026/05/ftc-ban-kochava-subsidiary-selling-sensitive-location-data-settle-charges-they-sold-location-data" rel="noopener" data-i18n="server.fonti.kochava"></a></li>
+        </ul>
+    </main>
+</body>
+</html>

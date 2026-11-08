@@ -12,6 +12,8 @@
 
     const STORAGE_KEY = 'df.language';
     const LINGUE = ['it', 'en'];
+    // I dizionari stanno accanto a js/: cosi' li trovano anche le pagine in una sottocartella
+    const DIZIONARI = new URL('../i18n/', document.currentScript.src);
 
     let language = 'it';
     let strings = {};
@@ -67,7 +69,7 @@
 
     /** Carica la lingua e aggiorna i testi statici marcati con data-i18n e il pulsante */
     async function setLanguage(code) {
-        const response = await fetch(`i18n/${code}.json`);
+        const response = await fetch(new URL(`${code}.json`, DIZIONARI));
         strings = await response.json();
         language = code;
         document.documentElement.lang = code;
