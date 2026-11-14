@@ -3,7 +3,7 @@
 Demo didattica di browser fingerprinting: cosa sa di te una pagina web appena la apri, senza
 cookie. Codice aperto e nessun backend: l'autore non raccoglie nulla.
 
-Sito: https://df.albgri.com/ (anche https://albgri.github.io/digital-fingerprint/)
+Sito: https://digital-fingerprint.albgri.com/ (anche https://albgri.github.io/digital-fingerprint/)
 
 ## Cosa mostra
 
@@ -54,7 +54,7 @@ Niente verso l'autore: nessun analytics, nessun cookie, nessun server suo. La pa
 
 La ricerca delle estensioni interroga indirizzi `chrome-extension://`, interni al browser: non esce
 niente. Questi servizi vedono il tuo IP quando li contatti, e l'hosting (GitHub Pages, piu' Cloudflare per
-df.albgri.com) riceve le normali richieste di ogni sito.
+digital-fingerprint.albgri.com) riceve le normali richieste di ogni sito.
 
 ID, cronologia delle visite e prima lettura della batteria restano nel localStorage del tuo
 browser, per mostrarti che la pagina ti riconosce, insieme alla lingua e al fuso scelti. Si

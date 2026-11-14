@@ -261,7 +261,7 @@
             // La policy di Nominatim chiede che l'applicazione si identifichi. Da una pagina lo fa
             // il Referer: il browser ignora un User-Agent impostato nella fetch, e il meta
             // no-referrer della pagina lo toglierebbe. Per questa sola richiesta si manda
-            // almeno l'origine (https://df.albgri.com/), altrimenti Nominatim puo' rispondere 403.
+            // almeno l'origine (https://digital-fingerprint.albgri.com/), altrimenti Nominatim puo' rispondere 403.
             const response = await fetch(url, { referrerPolicy: 'strict-origin' });
             
             if (!response.ok) {

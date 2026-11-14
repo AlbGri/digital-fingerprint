@@ -1,7 +1,11 @@
 # Changelog
 
+## 2026-11-14
+- Nuovo indirizzo: digital-fingerprint.albgri.com. I dati che la pagina aveva salvato nel browser
+  all'indirizzo vecchio (cronologia delle visite, lingua, fuso) non passano
+
 ## 2026-11-08
-- Pagina nuova "E se qualcuno salvasse questi dati?" (df.albgri.com/server/): cosa ne farebbe
+- Pagina nuova "E se qualcuno salvasse questi dati?" (digital-fingerprint.albgri.com/server/): cosa ne farebbe
   chi ha un server, il supercookie, la compravendita dei profili e come difendersi, con le fonti
 - Il ritratto dice quando il browser nasconde o falsa dei dati, e quando non si e' visto da dove
   ti colleghi
