@@ -7,6 +7,7 @@
   "errore.raccolta": "Error while collecting the data. Try reloading the page.",
   "footer.codice": "Source code on GitHub",
   "footer.licenza": "License",
+  "footer.cloudflare": "Cloudflare, the service in front of digital-fingerprint.albgri.com, checks on every page whether it is opened by a browser or by an automated program and may save the result in a technical cookie (cf_clearance), which is not used to profile visitors. To decide, it reads browser data similar to what this page shows.",
 
   "avviso.titolo": "What this page sees",
   "avviso.testo": "Everything below was read as soon as you opened the page, without asking you anything and without cookies. Put together, these data form a fingerprint that can recognize you from one visit to the next. The values marked with (*) make up your ID.",

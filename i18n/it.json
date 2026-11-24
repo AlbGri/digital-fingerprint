@@ -7,6 +7,7 @@
   "errore.raccolta": "Errore durante la raccolta dei dati. Riprova ricaricando la pagina.",
   "footer.codice": "Codice su GitHub",
   "footer.licenza": "Licenza",
+  "footer.cloudflare": "Cloudflare, il servizio che sta davanti a digital-fingerprint.albgri.com, controlla in ogni pagina se chi la apre usa un browser o un programma automatico e può salvarne l'esito in un cookie tecnico (cf_clearance), che non serve a profilare chi visita. Per deciderlo legge dal browser dati simili a quelli di questa pagina.",
 
   "avviso.titolo": "Cosa vede questa pagina",
   "avviso.testo": "Tutto quello che segue è stato letto appena hai aperto la pagina, senza chiederti niente e senza cookie. Messi insieme, questi dati formano un'impronta che può riconoscerti da una visita all'altra. I valori segnati con (*) formano il tuo ID.",

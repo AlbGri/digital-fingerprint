@@ -44,7 +44,7 @@ Con un permesso, una scheda alla volta:
 
 ## Cosa esce dal browser
 
-Niente verso l'autore: nessun analytics, nessun cookie, nessun server suo. La pagina contatta solo:
+Niente verso l'autore: nessun analytics, nessun cookie suo, nessun server suo. La pagina contatta solo:
 - `api64.ipify.org` e `api.ipify.org`, per l'IP pubblico
 - `ipwho.is`, per luogo, fornitore di rete e fuso dell'IP (limite di 1000 richieste al giorno
   per tutto il sito: oltre, queste righe dicono "limite del servizio")
@@ -54,7 +54,10 @@ Niente verso l'autore: nessun analytics, nessun cookie, nessun server suo. La pa
 
 La ricerca delle estensioni interroga indirizzi `chrome-extension://`, interni al browser: non esce
 niente. Questi servizi vedono il tuo IP quando li contatti, e l'hosting (GitHub Pages, piu' Cloudflare per
-digital-fingerprint.albgri.com) riceve le normali richieste di ogni sito.
+digital-fingerprint.albgri.com) riceve le normali richieste di ogni sito. Su digital-fingerprint.albgri.com Cloudflare controlla
+anche in ogni pagina se chi la apre usa un browser o un programma automatico, e puo' salvarne
+l'esito in un cookie tecnico (`cf_clearance`), che non serve a profilare chi visita. Per deciderlo
+legge dal browser dati simili a quelli che mostra questa demo.
 
 ID, cronologia delle visite e prima lettura della batteria restano nel localStorage del tuo
 browser, per mostrarti che la pagina ti riconosce, insieme alla lingua e al fuso scelti. Si
