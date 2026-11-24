@@ -342,7 +342,7 @@
                 
                 if (error.name === 'NotFoundError') {
                     resultContainer.innerHTML = `
-                        <div class="fp-warning">
+                        <div class="avviso">
                             <strong>${esc(t('permessi.media.nessuno'))}</strong>
                             <p>${esc(t('permessi.media.nessunoTesto'))}</p>
                         </div>
@@ -632,7 +632,7 @@
             stream.getVideoTracks().forEach(track => track.addEventListener('ended', fine));
 
             container.innerHTML = `<h4>${esc(t('permessi.schermo.anteprima'))}</h4>`
-                + `<div class="fp-warning"><strong>${esc(t('permessi.schermo.attenzione'))}</strong> ${esc(t('permessi.schermo.avviso'))}</div>`;
+                + `<div class="avviso"><strong>${esc(t('permessi.schermo.attenzione'))}</strong> ${esc(t('permessi.schermo.avviso'))}</div>`;
             container.appendChild(video);
             container.appendChild(stopButton);
 

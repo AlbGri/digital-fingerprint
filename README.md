@@ -31,7 +31,8 @@ Una seconda pagina, "E se qualcuno salvasse questi dati?" (`server/`), spiega co
 li conserva su un server: profili che sopravvivono alla pulizia, supercookie, collegamento fra
 siti e dispositivi, compravendita fra data broker, e come difendersi.
 
-La pagina e' in italiano o in inglese, con data e ora di Roma in alto.
+La pagina e' in italiano o in inglese, chiara o scura a scelta, con data e ora di Roma in alto
+(sul telefono in fondo).
 
 Con un permesso, una scheda alla volta:
 - posizione GPS e indirizzo
@@ -60,8 +61,8 @@ l'esito in un cookie tecnico (`cf_clearance`), che non serve a profilare chi vis
 legge dal browser dati simili a quelli che mostra questa demo.
 
 ID, cronologia delle visite e prima lettura della batteria restano nel localStorage del tuo
-browser, per mostrarti che la pagina ti riconosce, insieme alla lingua scelta. Si
-cancellano con il pulsante in fondo alla pagina, che lascia solo la lingua scelta, oppure
+browser, per mostrarti che la pagina ti riconosce, insieme alla lingua e al tema scelti. Si
+cancellano con il pulsante in fondo alla pagina, che lascia solo lingua e tema, oppure
 dalle impostazioni del browser, con i dati del sito.
 
 ## Provarla in locale
@@ -80,3 +81,6 @@ poi http://127.0.0.1:8000/
 L'elenco delle reti di datacenter in `js/reti-datacenter.js` viene da
 [bad-asn-list](https://github.com/brianhama/bad-asn-list) di Brian Hamachek, con licenza MIT,
 riportata in testa al file.
+
+I caratteri in `css/caratteri/`, Alegreya e Atkinson Hyperlegible Next, hanno la licenza SIL Open
+Font License 1.1, nei file `OFL-*.txt` della stessa cartella.

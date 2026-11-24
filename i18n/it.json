@@ -3,7 +3,7 @@
   "pagina.caricamento": "Analisi in corso...",
   "pagina.dati.testo": "La demo salva nel tuo browser la cronologia delle visite e la prima lettura della batteria: così alla prossima visita ti riconosce. Questi dati non escono dal browser.",
   "pagina.dati.pulsante": "Cancella i dati di questa demo",
-  "pagina.dati.fatto": "Dati cancellati: alla prossima visita la demo ti vedrà come nuovo. Lingua e fuso scelti restano.",
+  "pagina.dati.fatto": "Dati cancellati: alla prossima visita la demo ti vedrà come nuovo. Lingua e tema scelti restano.",
   "errore.raccolta": "Errore durante la raccolta dei dati. Riprova ricaricando la pagina.",
   "footer.codice": "Codice su GitHub",
   "footer.licenza": "Licenza",
@@ -51,7 +51,6 @@
   "ritratto.visite": "Questa pagina ti ha già visto {n} volte, la prima il {data}.",
   "ritratto.primaVisita": "È la prima volta che questa pagina ti vede: alla prossima visita ti riconoscerà, anche senza cookie.",
   "server.titolo": "E se qualcuno salvasse questi dati?",
-  "server.torna": "← Torna alla tua impronta",
   "server.intro": "La pagina che hai appena visto tiene tutto nel tuo browser. Ecco cosa cambia quando i dati finiscono sul server di qualcun altro.",
   "server.c1.titolo": "Cosa cambia con un server",
   "server.c1.testo": "Qui ID e visite stanno nella memoria del tuo browser (localStorage): se la cancelli, le visite spariscono. Un tracciatore invece le manda al suo server. L'impronta ti riconosce anche dopo una pulizia o in una finestra in incognito, e il server ritrova tutta la tua storia: lì non si perde niente.",
@@ -556,5 +555,17 @@
   "permessi.schermo.attiva": "Condivisione attiva",
 
   "lingua.passa": "English",
-  "ora.roma": "Roma"
+  "ora.roma": "Roma",
+
+  "mappa.titolo": "Mappa",
+  "mappa.chiudi": "Chiudi",
+  "mappa.demo": "La tua impronta",
+  "mappa.server": "Dati su un server",
+  "mappa.gruppo-rete": "Rete e posizione",
+  "mappa.gruppo-impronte": "Disegno e calcolo",
+  "mappa.capitolo-1": "Cosa cambia",
+  "tema.scuro": "Scuro",
+  "tema.chiaro": "Chiaro",
+  "tema.passaScuro": "Passa al tema scuro",
+  "tema.passaChiaro": "Passa al tema chiaro"
 }

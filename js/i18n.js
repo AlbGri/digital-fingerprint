@@ -77,10 +77,10 @@
             node.textContent = t(node.dataset.i18n);
         });
 
-        // Il pulsante mostra la lingua verso cui si passa
+        // Il pulsante mostra la lingua verso cui si passa; sul telefono la sola bandiera
         const pulsante = document.getElementById('language-toggle');
         const prossima = code === 'it' ? 'en' : 'it';
-        pulsante.textContent = prossima.toUpperCase();
+        pulsante.querySelector('.et').textContent = prossima.toUpperCase();
         pulsante.dataset.flag = prossima;
         pulsante.title = t('lingua.passa');
         pulsante.setAttribute('aria-label', t('lingua.passa'));

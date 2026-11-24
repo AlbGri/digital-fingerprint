@@ -3,7 +3,7 @@
   "pagina.caricamento": "Analyzing...",
   "pagina.dati.testo": "The demo stores your visit history and the first battery reading in your browser, so it recognizes you on your next visit. This data never leaves the browser.",
   "pagina.dati.pulsante": "Delete this demo's data",
-  "pagina.dati.fatto": "Data deleted: on your next visit the demo will see you as new. Your chosen language and time zone stay.",
+  "pagina.dati.fatto": "Data deleted: on your next visit the demo will see you as new. Your chosen language and theme stay.",
   "errore.raccolta": "Error while collecting the data. Try reloading the page.",
   "footer.codice": "Source code on GitHub",
   "footer.licenza": "License",
@@ -51,7 +51,6 @@
   "ritratto.visite": "This page has already seen you {n} times, the first on {data}.",
   "ritratto.primaVisita": "This is the first time this page sees you: on your next visit it will recognize you, even without cookies.",
   "server.titolo": "What if someone saved this data?",
-  "server.torna": "← Back to your fingerprint",
   "server.intro": "The page you just saw keeps everything in your browser. Here is what changes when the data ends up on someone else's server.",
   "server.c1.titolo": "What a server changes",
   "server.c1.testo": "Here ID and visits sit in your browser's memory (localStorage): if you clear it, the visits are gone. A tracker sends them to its server instead. The fingerprint recognizes you even after a cleanup or in an incognito window, and the server finds your whole history: nothing gets lost there.",
@@ -556,5 +555,17 @@
   "permessi.schermo.attiva": "Sharing on",
 
   "lingua.passa": "Italiano",
-  "ora.roma": "Rome"
+  "ora.roma": "Rome",
+
+  "mappa.titolo": "Map",
+  "mappa.chiudi": "Close",
+  "mappa.demo": "Your fingerprint",
+  "mappa.server": "Data on a server",
+  "mappa.gruppo-rete": "Network and location",
+  "mappa.gruppo-impronte": "Drawing and computing",
+  "mappa.capitolo-1": "What changes",
+  "tema.scuro": "Dark",
+  "tema.chiaro": "Light",
+  "tema.passaScuro": "Switch to the dark theme",
+  "tema.passaChiaro": "Switch to the light theme"
 }

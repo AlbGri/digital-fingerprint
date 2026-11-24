@@ -1699,7 +1699,7 @@
     function ritrattoHtml(data) {
         const esc = FingerprintUtils.escapeHtml;
         return `
-            <div class="fp-ritratto" data-ritratto>
+            <div class="scheda fp-ritratto" data-ritratto>
                 <h2 class="fp-ritratto-titolo">${esc(I18n.t('ritratto.titolo'))}</h2>
                 <p class="fp-ritratto-testo">${esc(ritratto(data).join(' '))}</p>
                 <p class="fp-section-note">${esc(I18n.t('ritratto.nota'))}</p>
@@ -1726,10 +1726,11 @@
                     </div>`;
         }).join('');
         const progresso = id === 'reteMisurata'
-            ? '<div class="progress-container"><div class="progress-bar" id="speed-test-progress"></div></div>'
+            ? '<div class="avanzamento"><div class="progress-container"><div class="progress-bar" id="speed-test-progress"></div></div>'
+                + '<span id="speed-test-percent"></span></div>'
             : '';
         return `
-                <div class="fp-section" data-sezione="${id}">
+                <div class="scheda fp-section" data-sezione="${id}">
                     <h3 class="fp-section-title">${esc(t(`sezione.${id}.titolo`))}</h3>
                     <p class="fp-section-note">${esc(t(`sezione.${id}.nota`))}</p>
                     <p class="fp-section-tag">${esc(tag)}</p>
@@ -1772,7 +1773,7 @@
         const uniqueness = calculateUniqueness(data);
 
         const warningHTML = `
-            <div class="fp-warning">
+            <div class="avviso">
                 <strong>${esc(t('avviso.titolo'))}</strong>
                 ${esc(t('avviso.testo'))}
             </div>
@@ -1784,7 +1785,7 @@
                 `<li><strong>${esc(t(COMPONENTI_ID[item.component][1]))}</strong>: "${esc(raccolto(item.value))}"</li>`
             ).join('');
             invalidWarningHTML = `
-                <div class="fp-warning">
+                <div class="avviso">
                     <strong>${esc(t('esclusi.titolo'))}</strong>
                     ${esc(t('esclusi.testo'))}
                     <ul class="fp-invalid-list">
@@ -1795,14 +1796,16 @@
         }
 
         const sezioni = formatFingerprintData(data);
+        // Id fissi per la mappa, uguali in ogni lingua
         const gruppiHTML = GRUPPI.map(([gruppo, ids]) => `
-            <h2 class="fp-group-title">${esc(t(`gruppo.${gruppo}`))}</h2>
+            <h2 class="fp-group-title" id="gruppo-${gruppo}">${esc(t(`gruppo.${gruppo}`))}</h2>
             ${ids.map(id => renderSection(id, sezioni[id])).join('')}
         `).join('');
 
         document.getElementById('fp-ritratto').innerHTML = ritrattoHtml(data);
         container.innerHTML = warningHTML + invalidWarningHTML + gruppiHTML;
         updateSpeedTestProgress(speedProgress);
+        Mappa.aggiorna();
         logger.log('[fingerprint-viewer] Fingerprint visualizzato');
     }
 
@@ -1851,9 +1854,9 @@
     }
     document.addEventListener('df:lingua', ridisegna);
 
-    // Toglie tutto cio' che la demo ha salvato nel browser, tranne la lingua scelta
+    // Toglie tutto cio' che la demo ha salvato nel browser, tranne lingua e tema scelti
     document.getElementById('clear-demo-data').addEventListener('click', () => {
-        const scelte = ['df.language'];
+        const scelte = ['df.language', 'digital-fingerprint/tema'];
         try {
             Object.keys(localStorage).filter(key => !scelte.includes(key))
                 .forEach(key => localStorage.removeItem(key));
@@ -1966,7 +1969,8 @@
         const progressBar = document.getElementById('speed-test-progress');
         if (progressBar) {
             progressBar.style.width = `${percentage}%`;
-            progressBar.textContent = `${Math.round(percentage)}%`;
+            // Accanto alla barra, non sopra: il colore dei dati non porta testo
+            document.getElementById('speed-test-percent').textContent = `${Math.round(percentage)}%`;
         }
     }
 })();

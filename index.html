@@ -41,8 +41,17 @@
 
     <link rel="license" href="https://www.gnu.org/licenses/agpl-3.0.html">
 
+    <!-- Barra del telefono del colore della barra del sito; con un tema scelto le cambia tema.js -->
+    <meta name="theme-color" content="#f4f6fa" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#232025" media="(prefers-color-scheme: dark)">
+
     <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="css/caratteri/caratteri.css">
+    <link rel="stylesheet" href="css/stile-comune.css">
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- Tema prima che la pagina si disegni, se no nello scuro lampeggia il chiaro: senza defer -->
+    <script src="js/tema.js"></script>
 
     <!-- Script in ordine -->
     <script src="js/logger.js" defer></script>
@@ -54,17 +63,33 @@
     <script src="js/fingerprint-extra.js" defer></script>
     <script src="js/fingerprint-viewer.js" defer></script>
     <script src="js/fingerprint-permissions.js" defer></script>
+    <script src="js/mappa.js" defer></script>
 </head>
 <body>
     <!-- Skip link per accessibilita WCAG 2.1 -->
     <a href="#fingerprint-section" class="skip-link" data-i18n="pagina.salta"></a>
 
-    <main class="form-container">
-        <div class="top-bar">
-            <span id="clock" class="clock"></span>
-            <button id="language-toggle" type="button" class="language-toggle"></button>
-        </div>
+    <!-- Sulla demo il nome e la sua voce nella mappa non ricaricano: conterebbe una visita in piu' -->
+    <header class="barra">
+        <a class="marchio" href="#">Digital Fingerprint</a>
+        <span class="briciole"></span>
+        <span id="clock" class="aggiornato" data-orologio></span>
+        <span class="controlli">
+            <button id="language-toggle" type="button" class="btn lingua"><span class="bandiera"></span><span class="et"></span></button>
+            <button id="tema-toggle" type="button" class="btn tema" aria-label="Passa al tema scuro"><i></i><span class="et">Scuro</span></button>
+        </span>
+    </header>
 
+    <div class="pagina">
+    <nav id="mappa" aria-labelledby="mappa-titolo">
+        <h2 id="mappa-titolo" data-i18n="mappa.titolo"></h2>
+        <ul>
+            <li><a href="#" aria-current="page" data-i18n="mappa.demo"></a></li>
+            <li><a href="server/" data-i18n="mappa.server"></a></li>
+        </ul>
+    </nav>
+
+    <main>
         <h1 id="fingerprint-title">Digital Fingerprint</h1>
 
         <!-- Parte senza permessi: la riempie fingerprint-viewer.js -->
@@ -72,7 +97,7 @@
             <div id="fp-ritratto"></div>
 
             <!-- Cosa farebbe con questi dati chi ha un server: pagina a parte -->
-            <p class="fp-server-link"><a class="btn-verde" href="server/" data-i18n="server.titolo"></a></p>
+            <p class="fp-server-link"><a class="btn" href="server/" data-i18n="server.titolo"></a></p>
 
             <div id="fp-content" class="fp-content">
                 <p class="fp-loading" data-i18n="pagina.caricamento"></p>
@@ -84,7 +109,7 @@
             <button
                 type="button"
                 id="advanced-permissions-toggle"
-                class="btn-verde permissions-toggle-button"
+                class="btn primario"
                 aria-expanded="false"
                 aria-controls="advanced-permissions-section"
                 data-i18n="permessi.mostra">
@@ -97,14 +122,14 @@
             <p data-i18n="permessi.intro"></p>
 
             <!-- Card 1: Geolocalizzazione GPS -->
-            <details class="permission-card">
+            <details class="piega permission-card">
                 <summary data-i18n="permessi.geo.titolo"></summary>
                 <div>
                     <p data-i18n="permessi.geo.testo"></p>
                     <p class="fp-section-tag" data-i18n="permessi.geo.tag"></p>
                     <button
                         type="button"
-                        class="btn-verde"
+                        class="btn"
                         data-permission-action="geolocation"
                         data-i18n="permessi.geo.pulsante">
                     </button>
@@ -113,14 +138,14 @@
             </details>
 
             <!-- Card 2: Dispositivi Multimediali Dettagliati -->
-            <details class="permission-card">
+            <details class="piega permission-card">
                 <summary data-i18n="permessi.media.titolo"></summary>
                 <div>
                     <p data-i18n="permessi.media.testo"></p>
                     <p class="fp-section-tag" data-i18n="permessi.media.tag"></p>
                     <button
                         type="button"
-                        class="btn-verde"
+                        class="btn"
                         data-permission-action="media-devices"
                         data-i18n="permessi.media.pulsante">
                     </button>
@@ -135,14 +160,14 @@
             </details>
 
             <!-- Card 3: Sensori Movimento Live -->
-            <details class="permission-card">
+            <details class="piega permission-card">
                 <summary data-i18n="permessi.sensori.titolo"></summary>
                 <div>
                     <p data-i18n="permessi.sensori.testo"></p>
                     <p class="fp-section-tag" data-i18n="permessi.sensori.tag"></p>
                     <button
                         type="button"
-                        class="btn-verde"
+                        class="btn"
                         data-permission-action="motion-sensors"
                         data-i18n="permessi.sensori.pulsante">
                     </button>
@@ -151,14 +176,14 @@
             </details>
 
             <!-- Card 4: Condivisione dello schermo -->
-            <details class="permission-card">
+            <details class="piega permission-card">
                 <summary data-i18n="permessi.schermo.titolo"></summary>
                 <div>
                     <p data-i18n="permessi.schermo.testo"></p>
                     <p class="fp-section-tag" data-i18n="permessi.schermo.tag"></p>
                     <button
                         type="button"
-                        class="btn-verde"
+                        class="btn"
                         data-permission-action="screen-capture"
                         data-i18n="permessi.schermo.pulsante">
                     </button>
@@ -167,14 +192,14 @@
             </details>
 
             <!-- Card 5: Lettura appunti -->
-            <details class="permission-card">
+            <details class="piega permission-card">
                 <summary data-i18n="permessi.appunti.titolo"></summary>
                 <div>
                     <p data-i18n="permessi.appunti.testo"></p>
                     <p class="fp-section-tag" data-i18n="permessi.appunti.tag"></p>
                     <button
                         type="button"
-                        class="btn-verde"
+                        class="btn"
                         data-permission-action="clipboard-read"
                         data-i18n="permessi.appunti.pulsante">
                     </button>
@@ -183,20 +208,20 @@
             </details>
 
             <!-- Card 6: Periferiche USB e Bluetooth -->
-            <details class="permission-card">
+            <details class="piega permission-card">
                 <summary data-i18n="permessi.periferiche.titolo"></summary>
                 <div>
                     <p data-i18n="permessi.periferiche.testo"></p>
                     <p class="fp-section-tag" data-i18n="permessi.periferiche.tag"></p>
                     <button
                         type="button"
-                        class="btn-verde"
+                        class="btn"
                         data-permission-action="usb"
                         data-i18n="permessi.periferiche.usb">
                     </button>
                     <button
                         type="button"
-                        class="btn-verde"
+                        class="btn"
                         data-permission-action="bluetooth"
                         data-i18n="permessi.periferiche.bluetooth">
                     </button>
@@ -209,7 +234,7 @@
             </details>
 
             <!-- Avviso finale -->
-            <div class="fp-warning">
+            <div class="avviso">
                 <strong data-i18n="permessi.nota.titolo"></strong>
                 <span data-i18n="permessi.nota.testo"></span>
             </div>
@@ -218,18 +243,22 @@
         <!-- Dati che la demo lascia nel browser -->
         <div class="demo-data">
             <p data-i18n="pagina.dati.testo"></p>
-            <button type="button" id="clear-demo-data" class="btn-verde" data-i18n="pagina.dati.pulsante"></button>
+            <button type="button" id="clear-demo-data" class="btn pericolo" data-i18n="pagina.dati.pulsante"></button>
             <p id="clear-demo-data-result" role="status"></p>
         </div>
 
+        <!-- Sul telefono l'orologio esce dalla barra e scende qui -->
+        <footer class="piede">
+            <p class="solo-telefono" data-orologio></p>
+            <p data-i18n="footer.cloudflare"></p>
+            <p>
+                <a href="https://github.com/AlbGri/digital-fingerprint" data-i18n="footer.codice"></a>
+                &middot; <span data-i18n="footer.licenza"></span> <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a>
+            </p>
+        </footer>
     </main>
+    </div>
 
-    <footer role="contentinfo">
-        <p data-i18n="footer.cloudflare"></p>
-        <p>
-            <a href="https://github.com/AlbGri/digital-fingerprint" data-i18n="footer.codice"></a>
-            &middot; <span data-i18n="footer.licenza"></span> <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a>
-        </p>
-    </footer>
+    <button type="button" class="btn fab" id="apri-mappa" aria-controls="mappa" aria-expanded="false"></button>
 </body>
 </html>

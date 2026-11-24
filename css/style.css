@@ -3,770 +3,96 @@
  * Author: AlbGri
  * Copyright: (c) 2025 Alberto G. - Licensed under AGPL-3.0
  * Created: 2025-10-22
- * Description: Stili della pagina, presi da quelli di albgri.com: solo le regole usate
+ * Description: Parti proprie del sito, sopra lo stile comune (stile-comune.css, da non toccare)
  */
 
-/* ==================== VARIABILI CSS ==================== */
-:root {
-    /* Palette colori principale con contrasto WCAG AA */
-    --color-primary: #0066cc;
-    --color-text: #212121;
-    --color-text-light: #666666;
-    --color-background: #f5f5f5;
-    --color-border: #dddddd;
-    --color-code-bg: #f4f4f4;
-
-    /* Colori semantici */
-    --color-error: #d32f2f;
-    --color-error-bg: #ffe6e6;
-    --color-button-success: #4CAF50;
-    --color-button-success-hover: #45a049;
-    --color-body-bg: #ffffff;
-    --color-fp-data-border: rgba(0, 0, 0, 0.05);
-
-    /* Dimensioni e spaziature con logical properties */
-    --max-width: 800px;
-    --border-radius: 4px;
-    --border-radius-md: 5px;
-    --border-radius-lg: 8px;
-    --spacing-sm: 10px;
-    --spacing-md: 15px;
-    --spacing-lg: 20px;
-    --spacing-xl: 40px;
-
-    /* Transizioni */
-    --transition-fast: 0.2s ease-in-out;
-
-    /* Focus outline per accessibilita */
-    --focus-outline: 2px solid var(--color-primary);
-    --focus-offset: 2px;
-}
-
-/* ==================== CASCADE LAYERS ==================== */
-/* Organizzazione CSS in layer per specificita controllata */
-
-@layer reset, base, components;
-
-@layer reset {
-    /* Box-sizing universale per calcoli dimensioni piu prevedibili */
-    *,
-    *::before,
-    *::after {
-        box-sizing: border-box;
-    }
-
-    /* Reset margini e padding */
-    html, body {
-        margin: 0;
-        padding: 0;
-    }
-}
-
-@layer base {
-    /* ==================== STILI BASE ==================== */
-    
-    /* Centralizzazione cursor per elementi interattivi */
-    button, .btn-verde {
-        cursor: pointer;
-    }
-
-    /* Pulsanti con il carattere della pagina: il browser darebbe il suo, diverso dai link */
-    button {
-        font: inherit;
-    }
-    
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        max-width: var(--max-width);
-        margin-block: 50px;
-        margin-inline: auto;
-        padding-inline: var(--spacing-lg);
-        line-height: 1.6;
-        color: var(--color-text);
-        background-color: var(--color-body-bg);
-
-        /* Migliora rendering del testo */
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        text-rendering: optimizeLegibility;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        line-height: 1.3;
-        margin-block-start: 1.5em;
-        margin-block-end: 0.5em;
-    }
-
-    h1 {
-        color: var(--color-text);
-        border-block-end: 2px solid var(--color-text);
-        padding-block-end: var(--spacing-sm);
-        margin-block-start: 0;
-        font-size: 2em;
-    }
-
-    /* Focus visibile per accessibilita WCAG 2.1 */
-    a, button, input, textarea, select {
-        &:focus {
-            outline: var(--focus-outline);
-            outline-offset: var(--focus-offset);
-        }
-
-        /* Rimuovi outline per mouse, mantienilo per tastiera */
-        &:focus:not(:focus-visible) {
-            outline: none;
-        }
-
-        &:focus-visible {
-            outline: var(--focus-outline);
-            outline-offset: var(--focus-offset);
-        }
-    }
-}
-
-@layer components {
-    /* ==================== ACCESSIBILITA ==================== */
-    
-    /* Skip link per screen reader WCAG 2.1 */
-    .skip-link {
-        position: absolute;
-        inset-block-start: 0;
-        inset-inline-start: 0;
-        /* spostato della sua altezza, qualunque sia: un valore fisso lo lasciava sporgere */
-        transform: translateY(calc(-100% - 4px));
-        background: var(--color-primary);
-        color: white;
-        padding-block: 8px;
-        padding-inline: 16px;
-        text-decoration: none;
-        z-index: 100;
-        font-weight: bold;
-
-        &:focus {
-            transform: none;
-        }
-    }
-
-    /* Bottone verde delle azioni */
-    .btn-verde {
-        background-color: var(--color-button-success);
-        color: white;
-        padding-block: 0.75rem;
-        padding-inline: 2rem;
-        border: none;
-        border-radius: var(--border-radius);
-        font-size: 1rem;
-        font-weight: 500;
-        transition: background-color var(--transition-fast);
-        min-block-size: 44px;
-        min-inline-size: 44px;
-
-        &:hover {
-            background-color: var(--color-button-success-hover);
-        }
-
-        &:disabled,
-        &[aria-busy="true"] {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-    }
-
-    .fingerprint-section {
-        margin-block: var(--spacing-lg);
-    }
-
-    /* Riquadro che contiene la pagina */
-    .form-container {
-        max-inline-size: 600px;
-        margin-block: 2rem;
-        margin-inline: auto;
-        padding: 2rem;
-        background: var(--color-background);
-        border-radius: var(--border-radius-lg);
-        border: 1px solid var(--color-border);
-
-        h1 {
-            margin-block-start: 0;
-            border-block-end: 0;
-        }
-    }
-
-    /* Barra in alto: data e ora di Roma a sinistra, lingua a destra */
-    .top-bar {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        gap: var(--spacing-sm);
-        margin-block-end: var(--spacing-md);
-    }
-
-    /* Sul telefono la data va a capo accanto alla lingua, invece di spingerla sotto */
-    .clock {
-        flex: 1 1 0;
-        font-size: 0.9em;
-    }
-
-    /* Mostra la lingua verso cui si passa: bandiera disegnata qui, non emoji (su Windows diventa due lettere) */
-    .language-toggle {
-        font: inherit;
-        font-size: 0.9em;
-        padding: 4px 10px;
-        color: var(--color-text);
-        background: var(--color-body-bg);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4em;
-        white-space: nowrap;
-        font-weight: 600;
-    }
-
-    .language-toggle::before {
-        content: '';
-        width: 1.4em;
-        height: 0.93em;
-        border-radius: 2px;
-        box-shadow: 0 0 0 1px rgb(128 128 128 / 0.45);
-        background: center / cover no-repeat;
-    }
-
-    .language-toggle[data-flag='en']::before {
-        background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2060%2030'%3E%3CclipPath%20id%3D'c'%3E%3Cpath%20d%3D'M30%2015h30v15zv15H0zH0V0zV0h30z'%2F%3E%3C%2FclipPath%3E%3Cpath%20d%3D'M0%200v30h60V0z'%20fill%3D'%23012169'%2F%3E%3Cpath%20d%3D'M0%200l60%2030m0-30L0%2030'%20stroke%3D'%23fff'%20stroke-width%3D'6'%2F%3E%3Cpath%20d%3D'M0%200l60%2030m0-30L0%2030'%20clip-path%3D'url(%23c)'%20stroke%3D'%23C8102E'%20stroke-width%3D'4'%2F%3E%3Cpath%20d%3D'M30%200v30M0%2015h60'%20stroke%3D'%23fff'%20stroke-width%3D'10'%2F%3E%3Cpath%20d%3D'M30%200v30M0%2015h60'%20stroke%3D'%23C8102E'%20stroke-width%3D'6'%2F%3E%3C%2Fsvg%3E");
-    }
-
-    .language-toggle[data-flag='it']::before {
-        background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%203%202'%3E%3Cpath%20d%3D'M0%200h1v2H0z'%20fill%3D'%23009246'%2F%3E%3Cpath%20d%3D'M1%200h1v2H1z'%20fill%3D'%23fff'%2F%3E%3Cpath%20d%3D'M2%200h1v2H2z'%20fill%3D'%23CE2B37'%2F%3E%3C%2Fsvg%3E");
-    }
-
-    /* Classe utility per nascondere elementi */
-    .hidden {
-        display: none;
-    }
-
-    .error {
-        color: var(--color-error);
-        padding: var(--spacing-lg);
-        background-color: var(--color-error-bg);
-        border-radius: var(--border-radius-md);
-        border-inline-start: 4px solid var(--color-error);
-        margin-block: var(--spacing-lg);
-
-        strong {
-            display: block;
-            margin-block-end: var(--spacing-sm);
-            font-size: 1.1em;
-        }
-    }
-
-    /* ==================== FOOTER ==================== */
-    
-    footer {
-        margin-block-start: var(--spacing-xl);
-        padding-block-start: var(--spacing-lg);
-        border-block-start: 1px solid var(--color-border);
-        text-align: center;
-        color: var(--color-text-light);
-        font-size: 0.9em;
-    }
-
-    footer a {
-        color: var(--color-primary);
-    }
-}
-
-/* ==================== FINGERPRINT VIEWER - Privacy Awareness Tool ==================== */
-.fp-content {
-    margin-block-start: 0;
-    padding: var(--spacing-md);
-    background: var(--color-background);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-md);
-}
-
-.fp-warning {
-    padding: 12px;
-    margin-block-end: 16px;
-    background: var(--color-error-bg);
-    border-inline-start: 4px solid var(--color-error);
-    border-radius: var(--border-radius);
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.fp-warning strong {
-    display: block;
-    margin-block-end: 4px;
-    color: var(--color-error);
-}
-
-/* Elenco dei componenti esclusi dal calcolo: una classe invece dello style inline,
-   che la CSP della pagina (style-src 'self') blocca */
-.fp-invalid-list {
-    margin: 8px 0 0 20px;
-    padding: 0;
-}
-
-/* Nome e valore sulla stessa riga: il titolo del riquadro resta a blocco */
-.fp-invalid-list strong {
-    display: inline;
-}
-
-/* Ritratto in cima: le conclusioni prima dei dati da cui vengono */
-.fp-ritratto {
-    padding: 14px 16px;
-    margin-block-end: 16px;
-    background: var(--color-code-bg);
-    border-inline-start: 4px solid var(--color-primary);
-    border-radius: var(--border-radius);
-    line-height: 1.6;
-}
-
-.fp-ritratto-titolo {
-    font-size: 19px;
-    margin-block: 0 8px;
-}
-
-.fp-ritratto-testo {
-    font-size: 16px;
-}
-
-/* Pulsante verso la pagina server/, sotto il ritratto: come quello dei permessi */
-.fp-server-link {
-    text-align: center;
-    margin-block: 0 20px;
-}
-
-.fp-server-link a {
-    display: inline-block;
-    text-decoration: none;
-}
-
-/* Pagina server/: titolo lungo un po' piu' piccolo, capitoli brevi da leggere */
-.server-pagina h1 {
-    font-size: 2em;
-}
-
-.server-pagina h2 {
-    font-size: 20px;
-    margin-block: 26px 6px;
-}
-
-.server-pagina p,
-.server-pagina li {
-    line-height: 1.6;
-}
-
-.server-pagina a {
-    color: var(--color-primary);
-}
-
-.torna {
-    display: inline-block;
-    margin-block-end: 12px;
-}
-
-.fp-section {
-    margin-block-end: 20px;
-}
-
-.fp-group-title {
-    font-size: 17px;
-    margin-block: 28px 12px;
-}
-
-.fp-group-title:first-of-type {
-    margin-block-start: 8px;
-}
-
-/* Spiegazione della tecnica e riga di permessi e servizi, sotto il titolo della sezione */
-.fp-section-note {
-    margin-block: 0 4px;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.fp-section-tag {
-    margin-block: 0 8px;
-    font-size: 12px;
-    color: var(--color-text-light);
-}
-
-.fp-section-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-primary);
-    margin-block-end: 8px;
-    padding-block-end: 4px;
-    border-block-end: 1px solid var(--color-border);
-}
-
-.fp-data-list {
-    margin: 0;
-    padding: 0;
-}
-
-.fp-data-item {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding-block: 6px;
-    border-block-end: 1px solid var(--color-fp-data-border);
-    font-size: 12px;
-}
-
-.fp-data-item:last-child {
-    border-block-end: none;
-}
-
-.fp-label {
-    font-weight: 600;
-    color: var(--color-text);
-    flex-shrink: 0;
-}
-
-.fp-value {
-    text-align: end;
-    color: var(--color-text-light);
-    margin: 0;
-    word-break: break-word;
-}
-
-.fp-loading,
-.fp-error {
-    text-align: center;
-    padding: 12px;
-    color: var(--color-text-light);
-    font-size: 13px;
-}
-
-.fp-error {
-    color: var(--color-error);
-}
-
-/* ========================================
-   FINGERPRINT - Nuove Tecniche Avanzate
-   ======================================== */
-
-/* Progress bar per analisi pesante */
-.progress-container {
-  width: 100%;
-  background-color: var(--color-border);
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  margin-block: var(--spacing-sm);
-}
-
-.progress-bar {
-  height: 24px;
-  background-color: var(--color-button-success);
-  transition: width 0.3s ease-in-out;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 0.85em;
-  font-weight: bold;
-}
-
-/* ==================== MEDIA QUERIES (MOBILE-FIRST) ==================== */
-
-/* Tablet e desktop */
-@media (min-width: 768px) {
-    body {
-        padding-inline: var(--spacing-xl);
-        font-size: 17px;
-    }
-
-    .form-container {
-        padding: 2.5rem;
-    }
-
-    h1 {
-        font-size: 2.5em;
-    }
-}
-
-/* Desktop large */
-@media (min-width: 1024px) {
-    body {
-        font-size: 18px;
-    }
-}
-
-/* Mobile piccoli */
-@media (max-width: 480px) {
-    body {
-        padding-inline: var(--spacing-md);
-        margin-block: 30px;
-    }
-
-    h1 {
-        font-size: 1.75em;
-    }
-
-    /* Con la data piu' lunga dell'anno l'orologio andrebbe su due righe */
-    .clock-giorno {
-        display: none;
-    }
-}
-
-/* Preferenze utente per movimento ridotto WCAG 2.1 */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
-}
-
-/* Modalita scura con contrasti WCAG AA */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --color-primary: #4da3ff;
-        --color-text: #e0e0e0;
-        --color-text-light: #c0c0c0;
-        --color-background: #1e1e1e;
-        --color-border: #404040;
-        --color-code-bg: #2a2a2a;
-        --color-error-bg: #3d1a1a;
-        --color-error: #ff6b6b;
-        --color-body-bg: #121212;
-        --color-fp-data-border: rgba(255, 255, 255, 0.1);
-    }
-}
-
-/* Contrasto elevato per utenti con necessita specifiche */
-@media (prefers-contrast: high) {
-    :root {
-        --color-border: #000000;
-        --focus-outline: 3px solid #000000;
-    }
-
-    body {
-        color: #000000;
-    }
-}
-
-/* ============================================================
-   SEZIONE ANALISI AVANZATA CON PERMESSI
-   ============================================================
-   Stili per la sezione delle card dei permessi nella pagina
-   index.html. Questi stili sostituiscono gli inline
-   styles per rispettare la Content Security Policy (CSP)
-   che vieta 'unsafe-inline' nella direttiva style-src.
-   
-   Autore: AlbGri
-   Data: 2025-10-27
-   ============================================================ */
-
-/* Contenitore principale sezione permessi
-   Nascosto di default, mostrato tramite toggle JavaScript */
-#advanced-permissions-section {
-    display: none;
-    margin-top: 30px;
-}
-
-/* Classe per mostrare la sezione quando attivata da JS
-   Usata da toggleAdvancedSection() in fingerprint-permissions.js */
-#advanced-permissions-section.visible {
-    display: block;
-}
-
-/* Titolo sezione permessi - Allineamento centrale */
-#advanced-permissions-section h2 {
-    text-align: center;
-    color: var(--color-text);
-    margin-bottom: 10px;
-}
-
-/* Paragrafo introduttivo sezione permessi */
-#advanced-permissions-section > p {
-    text-align: center;
-    color: var(--color-text-light);
-    margin-bottom: 30px;
-    line-height: 1.6;
-}
-
-/* Divisore contenente pulsante toggle sezione
-   Centra il pulsante principale "Scopri cosa posso vedere" */
-.permissions-divider {
-    text-align: center;
-    margin: 30px 0;
-}
-
-.demo-data {
-    text-align: center;
-    margin-block-start: var(--spacing-xl);
-}
-
-/* Pulsante principale per mostrare sezione permessi
-   Dimensioni maggiorate per visibilita */
-.permissions-toggle-button,
-.fp-server-link a {
-    font-size: 1.1em;
-    padding: 15px 30px;
-}
-
-/* Card singola permesso (elemento details)
-   Ogni card rappresenta una feature che richiede autorizzazione */
-.permission-card {
-    margin-bottom: 20px;
-    padding: 20px;
-    border: 2px solid var(--color-border);
-    border-radius: var(--border-radius-md);
-    background-color: var(--color-background);
-    transition: border-color var(--transition-fast);
-}
-
-/* Effetto hover sulle card per feedback visivo */
-.permission-card:hover {
-    border-color: var(--color-primary);
-}
-
-/* Titolo cliccabile della card (elemento summary)
-   Cliccabile per espandere/collassare il contenuto */
-.permission-card summary {
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1.1em;
-    padding: 10px;
-    color: var(--color-text);
-    list-style: none;
-    user-select: none;
-    transition: color var(--transition-fast);
-}
-
-/* Hover sul titolo per feedback interattivo */
-.permission-card summary:hover {
-    color: var(--color-primary);
-}
-
-/* Rimuove marker triangolare di default dell'elemento details
-   Compatibilita cross-browser (webkit/standard) */
-.permission-card summary::-webkit-details-marker {
-    display: none;
-}
-
-.permission-card summary::marker {
-    display: none;
-}
-
-/* Contenitore interno della card aperta
-   Contiene descrizione e pulsante azione */
-.permission-card > div {
-    margin-top: 15px;
-}
-
-/* Paragrafo descrittivo all'interno della card
-   Spiega cosa fa la feature e rischi privacy */
-.permission-card > div > p {
-    color: var(--color-text-light);
-    margin-bottom: 15px;
-    line-height: 1.6;
-}
-
-/* Container per visualizzare risultati dopo richiesta permesso
-   Popolato dinamicamente da JavaScript */
-.permission-result {
-    margin-top: 15px;
-    padding: 10px;
-    background-color: var(--color-code-bg);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--color-border);
-    font-size: 0.95em;
-    min-height: 40px;
-}
-
-/* Stile per messaggi di errore nei risultati
-   Usato quando richiesta permesso fallisce */
-.permission-result .error,
-.permission-result p.error {
-    color: var(--color-error);
-    font-weight: bold;
-}
-
-/* Pulsanti azione all'interno delle card
-   Mantiene margine superiore per spaziatura */
-.permission-card .btn-verde {
-    margin-top: 10px;
-}
-
-/* Stato successo per pulsanti dopo concessione permesso
-   Aggiunta classe 'success' tramite JavaScript */
-.permission-card .btn-verde.success {
-    background-color: var(--color-button-success);
-    cursor: default;
-    opacity: 0.9;
-}
-
-/* Stato hover per pulsanti successo - nessun effetto */
-.permission-card .btn-verde.success:hover {
-    background-color: var(--color-button-success);
-}
-
-/* Titoli h4 e h5 all'interno dei risultati
-   Usati per strutturare output complessi (es. lista dispositivi) */
-.permission-result h4,
-.permission-result h5 {
-    margin-top: 10px;
-    margin-bottom: 5px;
-    color: var(--color-text);
-}
-
-/* Liste non ordinate nei risultati
-   Usate per elencare dispositivi o dati strutturati */
-.permission-result ul {
-    margin: 5px 0 10px 20px;
-    padding: 0;
-}
-
-.permission-result li {
-    margin-bottom: 3px;
-}
-
-/* Testo letto dagli appunti: va a capo e resta dentro la card anche se e' una riga lunga,
-   e un testo molto lungo scorre invece di allungare la pagina */
-.permission-result .clipboard-text {
-    white-space: pre-wrap;
-    word-break: break-word;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-/* Liste descrittive (dl/dt/dd) nei risultati
-   Usate per coppie chiave-valore (es. coordinate GPS) */
-.permission-result dl {
-    margin: 10px 0;
-}
-
-.permission-result dt {
-    font-weight: bold;
-    margin-top: 5px;
-}
-
-.permission-result dd {
-    margin-left: 20px;
-    margin-bottom: 5px;
-}
-
-/* Warning educativo finale nella sezione permessi
-   Mantiene margine superiore adeguato */
-#advanced-permissions-section .fp-warning {
-    margin-top: 30px;
-}
+/* ---- Guscio ---- */
+/* "sei qui" e' scritto nel foglio comune, che non si traduce */
+:lang(en) #mappa a[aria-current]::after { content: "you are here"; }
+
+/* Bandiera della lingua di arrivo, disegnata qui: un'emoji su Windows diventa due lettere */
+.lingua .bandiera { display: inline-block; width: 18px; height: 12px; margin-right: 5px; vertical-align: -1px;
+  outline: 1px solid var(--line); background: center / cover no-repeat; }
+.lingua[data-flag='en'] .bandiera {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2060%2030'%3E%3CclipPath%20id%3D'c'%3E%3Cpath%20d%3D'M30%2015h30v15zv15H0zH0V0zV0h30z'%2F%3E%3C%2FclipPath%3E%3Cpath%20d%3D'M0%200v30h60V0z'%20fill%3D'%23012169'%2F%3E%3Cpath%20d%3D'M0%200l60%2030m0-30L0%2030'%20stroke%3D'%23fff'%20stroke-width%3D'6'%2F%3E%3Cpath%20d%3D'M0%200l60%2030m0-30L0%2030'%20clip-path%3D'url(%23c)'%20stroke%3D'%23C8102E'%20stroke-width%3D'4'%2F%3E%3Cpath%20d%3D'M30%200v30M0%2015h60'%20stroke%3D'%23fff'%20stroke-width%3D'10'%2F%3E%3Cpath%20d%3D'M30%200v30M0%2015h60'%20stroke%3D'%23C8102E'%20stroke-width%3D'6'%2F%3E%3C%2Fsvg%3E");
+}
+.lingua[data-flag='it'] .bandiera {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%203%202'%3E%3Cpath%20d%3D'M0%200h1v2H0z'%20fill%3D'%23009246'%2F%3E%3Cpath%20d%3D'M1%200h1v2H1z'%20fill%3D'%23fff'%2F%3E%3Cpath%20d%3D'M2%200h1v2H2z'%20fill%3D'%23CE2B37'%2F%3E%3C%2Fsvg%3E");
+}
+
+/* Salta al contenuto: fuori dalla vista della sua altezza, qualunque sia, finche' non ha il focus */
+.skip-link { position: absolute; top: 0; left: 0; z-index: 100; transform: translateY(calc(-100% - 4px)); padding: 8px 16px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--ink); font-weight: 700; }
+.skip-link:focus { transform: none; }
+
+.hidden { display: none; }
+
+/* ---- Risultati ---- */
+/* Le tecniche in schede affiancate; titoli dei gruppi e avvisi a tutta riga. Struttura piatta:
+   la prova trova le sezioni di un gruppo come fratelli del suo titolo */
+.fp-content { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 8px; align-items: start; }
+.fp-content > :not(.fp-section) { grid-column: 1 / -1; }
+.fp-group-title { margin: 14px 0 0; }
+.fp-section-title { margin: 0 0 4px; }
+.fp-section-note, .fp-section-tag { margin: 0 0 6px; font-size: .88rem; }
+.fp-section-tag { color: var(--muted); }
+
+.fp-data-list { margin: 0; }
+/* un valore lungo (user agent, scheda video) scende sotto l'etichetta invece di stringersi */
+.fp-data-item { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 12px; padding: 4px 0;
+  border-top: 1px solid var(--line); font-size: .92rem; }
+.fp-label { color: var(--muted); }
+.fp-value { margin: 0 0 0 auto; text-align: right; overflow-wrap: anywhere; }
+
+.fp-ritratto { margin-bottom: 10px; }
+.fp-ritratto h2 { font: 700 1.2rem/1.2 var(--serif); margin: 0 0 6px; }
+.fp-ritratto .fp-section-note { margin: 6px 0 0; color: var(--muted); }
+.fp-server-link { margin: 0 0 12px; }
+
+.avviso > strong:first-child { display: block; }
+/* nome e valore sulla stessa riga */
+.fp-invalid-list { margin: 6px 0 0; padding-left: 22px; }
+.fp-loading { color: var(--muted); }
+.fp-error, .error { color: var(--pericolo); font-weight: 700; }
+
+/* Speed test: la percentuale sta accanto alla barra, perche' il colore dei dati non porta testo */
+.avanzamento { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: .88rem; font-variant-numeric: tabular-nums; }
+.progress-container { flex: 1; height: 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.progress-bar { width: 0; height: 100%; background: var(--dato); transition: width .3s ease-in-out; }
+
+/* ---- Analisi con permessi ---- */
+#advanced-permissions-section { display: none; }
+#advanced-permissions-section.visible { display: block; }
+.permissions-divider { margin: 18px 0 0; }
+.permission-card .btn { margin: 0 6px 8px 0; }
+/* permesso concesso: come un pulsante premuto */
+.permission-card .btn.success { background: var(--surface-2); border-color: var(--ink); cursor: default; }
+.permission-result { padding: 8px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+.permission-result:empty { display: none; }
+.permission-result h4, .permission-result h5 { margin: 8px 0 4px; }
+.permission-result ul { margin: 4px 0 8px; padding-left: 22px; }
+.permission-result dl { margin: 6px 0; }
+.permission-result dt { font-weight: 700; }
+.permission-result dd { margin: 0 0 4px 20px; }
+/* testo dagli appunti: va a capo, e uno molto lungo scorre invece di allungare la pagina */
+.permission-result .clipboard-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 200px; overflow-y: auto; }
+#camera-snapshot-canvas { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
+#advanced-permissions-section > .avviso { margin-top: 12px; }
+
+.demo-data { margin-top: 18px; }
 
 /* Banner finto per il blocco della pubblicita': fuori dalla vista ma con un'altezza, che un
    bloccatore azzera nascondendolo */
-.esca-pubblicita {
-    position: absolute;
-    left: -10000px;
-    top: 0;
-    width: 1px;
-    height: 1px;
+.esca-pubblicita { position: absolute; left: -10000px; top: 0; width: 1px; height: 1px; }
+
+/* ---- Telefono ---- */
+@media (max-width: 760px) {
+  /* con la data piu' lunga dell'anno l'orologio andrebbe su due righe */
+  .clock-giorno { display: none; }
+  .lingua .bandiera { margin-right: 0; }
+  .fp-content { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar { transition: none; }
 }

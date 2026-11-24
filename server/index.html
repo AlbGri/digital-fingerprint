@@ -32,41 +32,60 @@
 
     <link rel="license" href="https://www.gnu.org/licenses/agpl-3.0.html">
 
+    <meta name="theme-color" content="#f4f6fa" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#232025" media="(prefers-color-scheme: dark)">
+
     <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="stylesheet" href="../css/caratteri/caratteri.css">
+    <link rel="stylesheet" href="../css/stile-comune.css">
     <link rel="stylesheet" href="../css/style.css">
 
+    <script src="../js/tema.js"></script>
     <script src="../js/i18n.js" defer></script>
     <script src="../js/clock.js" defer></script>
     <script src="../js/torna.js" defer></script>
+    <script src="../js/mappa.js" defer></script>
 </head>
 <body>
-    <main class="form-container server-pagina">
-        <div class="top-bar">
-            <span id="clock" class="clock"></span>
-            <button id="language-toggle" type="button" class="language-toggle"></button>
-        </div>
+    <header class="barra">
+        <a class="marchio" href="../" data-torna>Digital Fingerprint</a>
+        <span class="briciole"><a href="../" data-torna data-i18n="mappa.demo"></a> › <span data-i18n="mappa.server"></span></span>
+        <span id="clock" class="aggiornato" data-orologio></span>
+        <span class="controlli">
+            <button id="language-toggle" type="button" class="btn lingua"><span class="bandiera"></span><span class="et"></span></button>
+            <button id="tema-toggle" type="button" class="btn tema" aria-label="Passa al tema scuro"><i></i><span class="et">Scuro</span></button>
+        </span>
+    </header>
 
-        <a href="../" class="torna" data-torna data-i18n="server.torna"></a>
+    <div class="pagina">
+    <nav id="mappa" aria-labelledby="mappa-titolo">
+        <h2 id="mappa-titolo" data-i18n="mappa.titolo"></h2>
+        <ul>
+            <li><a href="../" data-torna data-i18n="mappa.demo"></a></li>
+            <li><a href="#" aria-current="page" data-i18n="mappa.server"></a></li>
+        </ul>
+    </nav>
 
+    <main class="documento">
         <h1 data-i18n="server.titolo"></h1>
         <p data-i18n="server.intro"></p>
 
-        <h2 data-i18n="server.c1.titolo"></h2>
+        <h2 id="capitolo-1" data-i18n="server.c1.titolo"></h2>
         <p data-i18n="server.c1.testo"></p>
 
-        <h2 data-i18n="server.c2.titolo"></h2>
+        <h2 id="capitolo-2" data-i18n="server.c2.titolo"></h2>
         <p data-i18n="server.c2.testo"></p>
 
-        <h2 data-i18n="server.c3.titolo"></h2>
+        <h2 id="capitolo-3" data-i18n="server.c3.titolo"></h2>
         <p data-i18n="server.c3.testo"></p>
 
-        <h2 data-i18n="server.c4.titolo"></h2>
+        <h2 id="capitolo-4" data-i18n="server.c4.titolo"></h2>
         <p data-i18n="server.c4.testo"></p>
 
-        <h2 data-i18n="server.c5.titolo"></h2>
+        <h2 id="capitolo-5" data-i18n="server.c5.titolo"></h2>
         <p data-i18n="server.c5.testo"></p>
 
-        <h2 data-i18n="server.c6.titolo"></h2>
+        <h2 id="capitolo-6" data-i18n="server.c6.titolo"></h2>
         <ul>
             <li data-i18n="server.c6.browser"></li>
             <li data-i18n="server.c6.blocco"></li>
@@ -75,12 +94,23 @@
             <li data-i18n="server.c6.gdpr"></li>
         </ul>
 
-        <h2 data-i18n="server.fonti"></h2>
+        <h2 id="fonti" data-i18n="server.fonti"></h2>
         <ul>
-            <li><a href="https://iccl.ie/news/iccl-report-on-the-scale-of-real-time-bidding-data-broadcasts-in-the-u-s-and-europe" rel="noopener" data-i18n="server.fonti.iccl"></a></li>
-            <li><a href="https://www.ftc.gov/news-events/news/press-releases/2024/02/ftc-order-will-ban-avast-selling-browsing-data-advertising-purposes-require-it-pay-165-million-over" rel="noopener" data-i18n="server.fonti.avast"></a></li>
-            <li><a href="https://www.ftc.gov/news-events/news/press-releases/2026/05/ftc-ban-kochava-subsidiary-selling-sensitive-location-data-settle-charges-they-sold-location-data" rel="noopener" data-i18n="server.fonti.kochava"></a></li>
+            <li><a href="https://iccl.ie/news/iccl-report-on-the-scale-of-real-time-bidding-data-broadcasts-in-the-u-s-and-europe" class="rimando" rel="noopener" data-i18n="server.fonti.iccl"></a></li>
+            <li><a href="https://www.ftc.gov/news-events/news/press-releases/2024/02/ftc-order-will-ban-avast-selling-browsing-data-advertising-purposes-require-it-pay-165-million-over" class="rimando" rel="noopener" data-i18n="server.fonti.avast"></a></li>
+            <li><a href="https://www.ftc.gov/news-events/news/press-releases/2026/05/ftc-ban-kochava-subsidiary-selling-sensitive-location-data-settle-charges-they-sold-location-data" class="rimando" rel="noopener" data-i18n="server.fonti.kochava"></a></li>
         </ul>
+
+        <footer class="piede">
+            <p class="solo-telefono" data-orologio></p>
+            <p>
+                <a href="https://github.com/AlbGri/digital-fingerprint" data-i18n="footer.codice"></a>
+                &middot; <span data-i18n="footer.licenza"></span> <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a>
+            </p>
+        </footer>
     </main>
+    </div>
+
+    <button type="button" class="btn fab" id="apri-mappa" aria-controls="mappa" aria-expanded="false"></button>
 </body>
 </html>

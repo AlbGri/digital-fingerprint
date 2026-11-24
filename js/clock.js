@@ -15,7 +15,7 @@
 
     /**
      * Data e ora di Roma a pezzi, con il giorno della settimana a parte: sul telefono l'orologio
-     * in testata lo nasconde. Inglese britannico, giorno prima del mese
+     * lo nasconde. Inglese britannico, giorno prima del mese
      * @param {Date} istante - Istante da mostrare
      * @returns {{giorno: string, data: string, ora: string}} Es. "martedì ", "24 novembre 2026", "14:05"
      */
@@ -51,14 +51,17 @@
         return conRoma ? `${testo} (${window.I18n.t('ora.roma')})` : testo;
     }
 
-    const orologio = document.getElementById('clock');
+    // Nella barra e, per il telefono, nel piede
+    const orologi = document.querySelectorAll('[data-orologio]');
 
     function aggiorna() {
         const { giorno, data, ora } = parti(new Date());
-        const giornoVisibile = document.createElement('span');
-        giornoVisibile.className = 'clock-giorno';
-        giornoVisibile.textContent = giorno.charAt(0).toUpperCase() + giorno.slice(1);
-        orologio.replaceChildren(giornoVisibile, `${data}, ${ora} (${window.I18n.t('ora.roma')})`);
+        orologi.forEach(orologio => {
+            const giornoVisibile = document.createElement('span');
+            giornoVisibile.className = 'clock-giorno';
+            giornoVisibile.textContent = giorno.charAt(0).toUpperCase() + giorno.slice(1);
+            orologio.replaceChildren(giornoVisibile, `${data}, ${ora} (${window.I18n.t('ora.roma')})`);
+        });
     }
 
     // Allo scattare di ogni minuto: Roma ha uno scarto di ore intere da UTC
