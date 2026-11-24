@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-24
+- L'orologio in alto mostra data e ora di Roma, senza scelta del fuso. Le ore della pagina (visite,
+  posizione) hanno lo stesso formato, con "(Roma)" dopo l'ora
+
 ## 2026-11-14
 - Nuovo indirizzo: digital-fingerprint.albgri.com. I dati che la pagina aveva salvato nel browser
   all'indirizzo vecchio (cronologia delle visite, lingua, fuso) non passano

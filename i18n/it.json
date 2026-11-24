@@ -190,7 +190,7 @@
   "sezione.visite.tag": "Permesso: no · Servizi esterni: nessuno · Salvato nel tuo browser",
   "sezione.visite.id": "ID del dispositivo",
   "sezione.visite.numero": "Visite",
-  "sezione.visite.cronologia": "Cronologia delle visite",
+  "sezione.visite.cronologia": "Cronologia delle visite (Roma)",
   "sezione.visite.prima": "Prima visita",
   "sezione.visite.browserUsati": "Browser usati",
 
@@ -556,6 +556,5 @@
   "permessi.schermo.attiva": "Condivisione attiva",
 
   "lingua.passa": "English",
-  "orologio.cambia": "Cambia il fuso orario",
-  "orologio.fuso": "Fuso orario"
+  "ora.roma": "Roma"
 }

@@ -1385,15 +1385,6 @@
         return I18n.t(scala[1], { n: cifra });
     }
 
-    function dataOra(timestamp) {
-        const data = new Date(timestamp);
-        // Le visite salvate prima delle date ISO sono testo gia' formattato: si mostrano come sono
-        return isNaN(data) ? timestamp : data.toLocaleString(I18n.getLanguage(), {
-            timeZone: Clock.getTimeZone(),
-            year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
-        });
-    }
-
     /**
      * Righe di ogni sezione nella lingua scelta: si ricalcolano dai dati raccolti a ogni resa
      * @param {Object} data - Fingerprint raccolto
@@ -1439,8 +1430,8 @@
             visite: [
                 { voce: 'id', value: data.persistentID },
                 { voce: 'numero', value: storia.visitCount },
-                { voce: 'cronologia', value: storia.history.map(v => `(${raccolto(v.browser)}, ${dataOra(v.timestamp)})`).join('; ') },
-                { voce: 'prima', value: dataOra(storia.firstVisit) },
+                { voce: 'cronologia', value: storia.history.map(v => `${raccolto(v.browser)}: ${Clock.dataOra(v.timestamp, false)}`).join('; ') },
+                { voce: 'prima', value: Clock.dataOra(storia.firstVisit) },
                 { voce: 'browserUsati', value: [...new Set(storia.history.map(v => raccolto(v.browser)))].join(', ') }
             ],
             unicita: [
@@ -1699,7 +1690,7 @@
         // Visite precedenti
         const storia = data.trackingHistory;
         frasi.push(storia.visitCount > 1
-            ? t('ritratto.visite', { n: storia.visitCount, data: dataOra(storia.firstVisit) })
+            ? t('ritratto.visite', { n: storia.visitCount, data: Clock.dataOra(storia.firstVisit) })
             : t('ritratto.primaVisita'));
 
         return frasi;
@@ -1851,7 +1842,7 @@
         }
     }
 
-    // Cambio di lingua o di fuso: si ridisegna dai dati gia' raccolti, senza rifare analisi e
+    // Cambio di lingua: si ridisegna dai dati gia' raccolti, senza rifare analisi e
     // speed test
     function ridisegna() {
         if (cachedFingerprint && document.querySelector('[data-sezione]')) {
@@ -1859,11 +1850,10 @@
         }
     }
     document.addEventListener('df:lingua', ridisegna);
-    document.addEventListener('df:fuso', ridisegna);
 
-    // Toglie tutto cio' che la demo ha salvato nel browser, tranne lingua e fuso scelti
+    // Toglie tutto cio' che la demo ha salvato nel browser, tranne la lingua scelta
     document.getElementById('clear-demo-data').addEventListener('click', () => {
-        const scelte = ['df.language', 'df.timezone'];
+        const scelte = ['df.language'];
         try {
             Object.keys(localStorage).filter(key => !scelte.includes(key))
                 .forEach(key => localStorage.removeItem(key));

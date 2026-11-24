@@ -31,7 +31,7 @@ Una seconda pagina, "E se qualcuno salvasse questi dati?" (`server/`), spiega co
 li conserva su un server: profili che sopravvivono alla pulizia, supercookie, collegamento fra
 siti e dispositivi, compravendita fra data broker, e come difendersi.
 
-La pagina e' in italiano o in inglese, con un orologio nel fuso orario che scegli.
+La pagina e' in italiano o in inglese, con data e ora di Roma in alto.
 
 Con un permesso, una scheda alla volta:
 - posizione GPS e indirizzo
@@ -60,8 +60,8 @@ l'esito in un cookie tecnico (`cf_clearance`), che non serve a profilare chi vis
 legge dal browser dati simili a quelli che mostra questa demo.
 
 ID, cronologia delle visite e prima lettura della batteria restano nel localStorage del tuo
-browser, per mostrarti che la pagina ti riconosce, insieme alla lingua e al fuso scelti. Si
-cancellano con il pulsante in fondo alla pagina, che lascia solo lingua e fuso scelti, oppure
+browser, per mostrarti che la pagina ti riconosce, insieme alla lingua scelta. Si
+cancellano con il pulsante in fondo alla pagina, che lascia solo la lingua scelta, oppure
 dalle impostazioni del browser, con i dati del sito.
 
 ## Provarla in locale

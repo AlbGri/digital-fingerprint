@@ -208,7 +208,7 @@
                     <dt>${esc(t('permessi.geo.altitudine'))}</dt>
                     <dd>${altitude ? `${altitude.toFixed(1)} m` : esc(t('valore.nonDisponibile'))}</dd>
                     <dt>${esc(t('permessi.geo.ora'))}</dt>
-                    <dd>${esc(FingerprintUtils.formatTimestamp(new Date(position.timestamp)))}</dd>
+                    <dd>${esc(Clock.dataOra(position.timestamp))}</dd>
                 </dl>
                 <p class="geo-attesa"><em>${esc(t('permessi.geo.recupero'))}</em></p>
             `;

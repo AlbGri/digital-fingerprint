@@ -192,7 +192,7 @@
         }
     }
 
-    /* Barra in alto: orologio con il fuso a sinistra, lingua a destra, elenco dei fusi sotto */
+    /* Barra in alto: data e ora di Roma a sinistra, lingua a destra */
     .top-bar {
         display: flex;
         flex-wrap: wrap;
@@ -202,9 +202,14 @@
         margin-block-end: var(--spacing-md);
     }
 
-    .clock,
-    .language-toggle,
-    .timezone-select {
+    /* Sul telefono la data va a capo accanto alla lingua, invece di spingerla sotto */
+    .clock {
+        flex: 1 1 0;
+        font-size: 0.9em;
+    }
+
+    /* Mostra la lingua verso cui si passa: bandiera disegnata qui, non emoji (su Windows diventa due lettere) */
+    .language-toggle {
         font: inherit;
         font-size: 0.9em;
         padding: 4px 10px;
@@ -212,24 +217,6 @@
         background: var(--color-body-bg);
         border: 1px solid var(--color-border);
         border-radius: var(--border-radius);
-    }
-
-    /* Un fuso lungo (America/Argentina/Buenos_Aires) non deve allargare la pagina sul telefono */
-    .clock {
-        min-inline-size: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .timezone-select {
-        flex-basis: 100%;
-        min-inline-size: 0;
-    }
-
-    /* Mostra la lingua verso cui si passa: bandiera disegnata qui, non emoji (su Windows diventa due lettere) */
-    .language-toggle {
         display: inline-flex;
         align-items: center;
         gap: 0.4em;

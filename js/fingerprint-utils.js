@@ -62,20 +62,6 @@
         },
 
         /**
-         * Formatta timestamp in formato leggibile
-         * @param {string|Date} timestamp - Timestamp da formattare
-         * @returns {string} Timestamp formattato
-         */
-        formatTimestamp: function(timestamp) {
-            try {
-                const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
-                return date.toLocaleString(window.I18n.getLanguage(), { timeZone: window.Clock.getTimeZone() });
-            } catch (error) {
-                return 'Data non valida';
-            }
-        },
-
-        /**
          * Calcola hash semplice di una stringa
          * @param {string} str - Stringa da hashare
          * @returns {string} Hash esadecimale

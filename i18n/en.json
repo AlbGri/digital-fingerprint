@@ -190,7 +190,7 @@
   "sezione.visite.tag": "Permission: no · External services: none · Saved in your browser",
   "sezione.visite.id": "Device ID",
   "sezione.visite.numero": "Visits",
-  "sezione.visite.cronologia": "Visit history",
+  "sezione.visite.cronologia": "Visit history (Rome)",
   "sezione.visite.prima": "First visit",
   "sezione.visite.browserUsati": "Browsers used",
 
@@ -556,6 +556,5 @@
   "permessi.schermo.attiva": "Sharing on",
 
   "lingua.passa": "Italiano",
-  "orologio.cambia": "Change the time zone",
-  "orologio.fuso": "Time zone"
+  "ora.roma": "Rome"
 }

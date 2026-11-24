@@ -3,75 +3,55 @@
  * Author: AlbGri
  * Copyright: (c) 2026 Alberto G. - Licensed under AGPL-3.0
  * Created: 2026-11-07
- * Description: Orologio con il fuso orario scelto, sempre in vista; al clic un elenco per
- *              cambiarlo. Il fuso del browser, che la demo mostra, e' un dato raccolto e non
- *              c'entra con questo. Espone window.Clock
+ * Description: Orologio nell'ora di Roma, testo semplice in testata, e formato unico delle ore
+ *              mostrate dalla pagina. Il fuso del browser, che la demo mostra, e' un dato
+ *              raccolto e non c'entra con questo. Espone window.Clock
  */
 
 (function() {
     'use strict';
 
-    const STORAGE_KEY = 'df.timezone';
-    const PREDEFINITO = 'Europe/Rome';
-    const FUSI = Intl.supportedValuesOf ? Intl.supportedValuesOf('timeZone') : [PREDEFINITO];
+    const FUSO = 'Europe/Rome';
 
-    const pulsante = document.getElementById('clock');
-    const elenco = document.getElementById('timezone-select');
-
-    // Europe/Rome se non c'e' una scelta salvata: il fuso del browser non conta
-    function fusoSalvato() {
-        try {
-            const salvato = localStorage.getItem(STORAGE_KEY);
-            return FUSI.includes(salvato) ? salvato : PREDEFINITO;
-        } catch (e) {
-            return PREDEFINITO;
+    /**
+     * Data, ore e minuti nell'ora di Roma, nella lingua scelta
+     * @param {string|number|Date} timestamp - Istante da mostrare
+     * @param {boolean} [conRoma=true] - Aggiunge "(Roma)" dopo l'ora
+     * @returns {string} Es. "martedì 24 novembre 2026, 14:05 (Roma)"
+     */
+    function dataOra(timestamp, conRoma = true) {
+        const istante = new Date(timestamp);
+        // Le visite salvate prima delle date ISO sono testo gia' formattato: si mostrano come sono
+        if (isNaN(istante)) {
+            return timestamp;
         }
+        const lingua = window.I18n.getLanguage();
+        const data = istante.toLocaleDateString(lingua, {
+            timeZone: FUSO, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        });
+        // 24 ore anche in inglese: e' l'ora di Roma
+        const ora = istante.toLocaleTimeString(lingua, {
+            timeZone: FUSO, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+        });
+        const testo = `${data}, ${ora}`;
+        return conRoma ? `${testo} (${window.I18n.t('ora.roma')})` : testo;
     }
 
-    let fuso = fusoSalvato();
+    const orologio = document.getElementById('clock');
 
     function aggiorna() {
-        const ora = new Date().toLocaleTimeString(window.I18n.getLanguage(), {
-            timeZone: fuso, hour: '2-digit', minute: '2-digit', second: '2-digit'
-        });
-        pulsante.textContent = `${ora} ${fuso}`;
-        pulsante.title = window.I18n.t('orologio.cambia');
-        elenco.setAttribute('aria-label', window.I18n.t('orologio.fuso'));
+        const testo = dataOra(Date.now());
+        orologio.textContent = testo.charAt(0).toUpperCase() + testo.slice(1);
     }
 
-    FUSI.forEach(nome => elenco.add(new Option(nome, nome)));
-    elenco.value = fuso;
-    mostraElenco(false);
-
-    function mostraElenco(visibile) {
-        elenco.hidden = !visibile;
-        pulsante.setAttribute('aria-expanded', visibile);
-    }
-
-    pulsante.addEventListener('click', () => {
-        mostraElenco(elenco.hidden);
-        if (!elenco.hidden) {
-            elenco.focus();
-        }
-    });
-
-    elenco.addEventListener('change', () => {
-        fuso = elenco.value;
-        try {
-            localStorage.setItem(STORAGE_KEY, fuso);
-        } catch (e) {
-            // Senza localStorage la scelta vale fino al ricaricamento
-        }
-        mostraElenco(false);
+    // Allo scattare di ogni minuto: Roma ha uno scarto di ore intere da UTC
+    function aggiornaAlMinuto() {
         aggiorna();
-        // Le ore mostrate dalla pagina si ridisegnano nel fuso nuovo
-        document.dispatchEvent(new Event('df:fuso'));
-    });
+        setTimeout(aggiornaAlMinuto, 60000 - Date.now() % 60000);
+    }
 
     document.addEventListener('df:lingua', aggiorna);
-    window.I18n.ready.then(aggiorna);
-    aggiorna();
-    setInterval(aggiorna, 1000);
+    window.I18n.ready.then(aggiornaAlMinuto);
 
-    window.Clock = { getTimeZone: () => fuso };
+    window.Clock = { dataOra };
 })();
