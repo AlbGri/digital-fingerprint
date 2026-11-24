@@ -430,9 +430,9 @@
     // Emoji introdotte in anni diversi, scritte come codici: le versioni del sistema operativo
     // aggiornano il font delle emoji, quindi l'ultima che si disegna data il sistema
     const EMOJI_VERSIONI = [
-        ['11.0 (2018)', '\u{1F970}'], ['12.0 (2019)', '\u{1F971}'], ['13.0 (2020)', '\u{1F972}'],
-        ['14.0 (2021)', '\u{1FAE0}'], ['15.0 (2022)', '\u{1FAE8}'],
-        ['15.1 (2023)', '\u{1F426}\u{200D}\u{1F525}'], ['16.0 (2024)', '\u{1FAE9}']
+        ['11.0 (2018)', '\u{1F970}'], ['12.0 (2019)', '\u{1F971}'], ['13.0 (2020)', '\u{1F972}'], // stile:consentito
+        ['14.0 (2021)', '\u{1FAE0}'], ['15.0 (2022)', '\u{1FAE8}'], // stile:consentito
+        ['15.1 (2023)', '\u{1F426}\u{200D}\u{1F525}'], ['16.0 (2024)', '\u{1FAE9}'] // stile:consentito
     ];
 
     /**
@@ -453,7 +453,7 @@
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.font = '32px sans-serif';
         ctx.textBaseline = 'top';
-        const larghezzaRiferimento = ctx.measureText('\u{1F600}').width;
+        const larghezzaRiferimento = ctx.measureText('\u{1F600}').width; // stile:consentito
 
         // Un'emoji supportata si disegna a colori; una sconosciuta diventa un riquadro
         // monocromatico. Una sequenza unita (ZWJ) non supportata diventa due emoji affiancate,

@@ -30,7 +30,7 @@
  */
 
 window.EstensioniNote = [
-    ["gighmmpiobklfepjocnamgkkbiglidom", "adblock-uiscripts-adblock-wizard.css", "AdBlock — best ad blocker"],
+    ["gighmmpiobklfepjocnamgkkbiglidom", "adblock-uiscripts-adblock-wizard.css", "AdBlock — best ad blocker"], // stile:consentito
     ["bmnlcjabgnpnenekpadlanbbkooimhnj", "checkoutPaypal/paypal/context.js", "Honey: Automatic Coupons & Cash Back"],
     ["aapbdbdomjkkjkaonfhkkikfgjllcleb", "popup_css_compiled.css", "Google Translate"],
     ["kbfnbcaeplbcioakkpcpgfkobkghlhen", "src/fonts/0cde50f90fe61871de0af0d24e4d6f6b/extension-inter-light.woff", "Grammarly: Grammar Checker and Writing App"],
@@ -252,7 +252,7 @@ window.EstensioniNote = [
     ["hgmhmanijnjhaffoampdlllchpolkdnj", "html/source_popup.html", "Hunter - Email Finder Extension"],
     ["gngocbkfmikdgphklgmmehbjjlfgdemm", "assets/icons/128.png", "SwagButton"],
     ["bfogiafebfohielmmehodmfbbebbbpei", "content_scripts/prompt/prompt.html", "Keeper® Password Manager & Digital Vault"],
-    ["kpiecbcckbofpmkkkdibbllpinceiihk", "install.html", "DotVPN — a Better way to VPN"],
+    ["kpiecbcckbofpmkkkdibbllpinceiihk", "install.html", "DotVPN — a Better way to VPN"], // stile:consentito
     ["pnjaodmkngahhkoihejjehlcdlnohgmp", "extension-icons/icon48x48.png", "RSS Feed Reader"],
     ["bmhcbmnbenmcecpmpepghooflbehcack", "views/appInstall/appInstall-v1.css", "LINER - Search Faster & Highlight Web/Youtube"],
     ["aejoelaoggembcahagimdiliamlcdmfm", "images/icon/favicon.ico", "Talend API Tester - Free Edition"],
@@ -506,7 +506,7 @@ window.EstensioniNote = [
     ["pohmgobdeajemcifpoldnnhffjnnkhgf", "wecast-cam.html", "WeVideo for Schools: Screen & Webcam Recorder"],
     ["ljmaegmnepbgjekghdfkgegbckolmcok", "html5mmrPlayer.js", "VMware Horizon HTML5 Redirection Extension"],
     ["fmiojochalhealflohaicjncoofdjjfb", "NucaPowerMicChromeAdapter.js", "Nuance PowerMic Web Extension"],
-    ["cnlhokffphohmfcddnibpohmkdfafdli", "save.html", "MultiPassword — Password manager"],
+    ["cnlhokffphohmfcddnibpohmkdfafdli", "save.html", "MultiPassword — Password manager"], // stile:consentito
     ["jmekfmbnaedfebfnmakmokmlfpblbfdm", "api/tag_assistant_api_bin.js", "Tag Assistant Companion"],
     ["liafhjblpnimknccffddoiglnfgneaib", "img/icon16.png", "Web Protection for Chrome"],
     ["pdmhilamamchgnnipghbjakjpbenbcdj", "js/ext_content.js", "Impero Education Pro"],
@@ -851,7 +851,7 @@ window.EstensioniNote = [
     ["phpaiffimemgakmakpcehgbophkbllkf", "public/js/vimeo.js", "Download Vimeo Videos, Premium"],
     ["bgjfekefhjemchdeigphccilhncnjldn", "icon.png", "smartUp Gestures"],
     ["jmjbgcjbgmcfgbgikmbdioggjlhjegpp", "javascripts/injection.js", "Screen capture, screenshot share/save"],
-    ["manjolceoachljppbjhfgkoomnlidkna", "fonts/Montserrat.woff2", "Surfe.be — the extension with which you earn"],
+    ["manjolceoachljppbjhfgkoomnlidkna", "fonts/Montserrat.woff2", "Surfe.be — the extension with which you earn"], // stile:consentito
     ["cfmnkhhioonhiehehedmnjibmampjiab", "popup.html", "New tab page by start.me"],
     ["ejhkmnhjkbekmfohoipicmpmjdbofdhm", "external/sizzle.min.js", "Pague Menos Be!Tech"],
     ["hjnhcgkngeeahimbfhejeaiijecekhba", "img/ysense_icon_48.png", "ySense Addon"],
@@ -874,7 +874,7 @@ window.EstensioniNote = [
     ["hmeobnfnfcmdkdcmlblgagmfpfboieaf", "js/inPage.bundle.js", "XDEFI Wallet"],
     ["odlccijpiadmfoddfbikkicnbdeneabm", "assets/feedback_icon.png", "React: Emoji, GIFs & Filters for Google Meet"],
     ["flffekjijpabhjgpoapooggncnmcjopa", "imgs/arrow_chrome_default_h_dec.png", "Scrollbar Customizer"],
-    ["lmepjnndgdhcgphilomlfekmgnnmngbi", "index.html", "Soapbox — Video Recorder"],
+    ["lmepjnndgdhcgphilomlfekmgnnmngbi", "index.html", "Soapbox — Video Recorder"], // stile:consentito
     ["ejllkedmklophclpgonojjkaliafeilj", "images/eraser.svg", "Paint"],
     ["fdfcjfoifbjplmificlkdfneafllkgmn", "src/hoverTools/hoverTools.html", "Highlighter"],
     ["ejcfdikabeebbgbopoagpabbdokepnff", "ui/inspect_start.js", "Rajiko"],
@@ -1106,7 +1106,7 @@ window.EstensioniNote = [
     ["ecldhagehndokdmaiaigoaecbmbnmfkc", "images/next_1.png", "MagicScroll Web Reader"],
     ["ijcpiojgefnkmcadacmacogglhjdjphj", "data/transphobic.dat", "Shinigami Eyes"],
     ["iaggnolkjmfokghjpmdkcmaoldckdgfk", "assets/icons/128.png", "Billy Button"],
-    ["epnkgfaomnlopilnejhgndcilhlimndd", "icon128.png", "Shopstat — Аналитика Wildberries и Ozon"],
+    ["epnkgfaomnlopilnejhgndcilhlimndd", "icon128.png", "Shopstat — Аналитика Wildberries и Ozon"], // stile:consentito
     ["djkbihbnjhkjahbhjaadbepppbpoedaa", "html/app.html", "Typio Form Recovery"],
     ["okfkdaglfjjjfefdcppliegebpoegaii", "static/css/tailwind.dist.css", "Scribe: Documentation, SOPs, & Screenshots"],
     ["dndehlekllfkaijdlokmmicgnlanfjbi", "res/img/settings/bg_random2.png", "Ultrawidify"],
@@ -1132,7 +1132,7 @@ window.EstensioniNote = [
     ["lgjinjcobiflbbnhenlfkcjpeeacklfl", "exists.gif", "Copy Me That"],
     ["eagjogpknkkfgelchdkhdmgiljjidndf", "fonts/material-design-icons/MaterialIcons-Regular.woff2", "eTrack - Package Tracking"],
     ["bhnkonnaaipkhoaiakbcpcaolflgmnhl", "src/resources/styles/main.css", "Roblox Themes"],
-    ["jldbdlmljpigglecmeclifcdhgbjbakk", "assets/icons/icon-128.png", "Outwrite — Grammar checker & rewrite tool"],
+    ["jldbdlmljpigglecmeclifcdhgbjbakk", "assets/icons/icon-128.png", "Outwrite — Grammar checker & rewrite tool"], // stile:consentito
     ["fahhlhbhnmkjegdfoiadmnhcclidoflh", "assets/css/common.css", "AliPrice - TB以图搜货"],
     ["biehagnkgckkagkbpncoieiknahmngdg", "images/asify_128.png", "ASIFY"],
     ["lenipkahddombkldhfmcnnjakmcepdlk", "assets/css/common.css", "AliPrice卖家助手"],
@@ -1141,7 +1141,7 @@ window.EstensioniNote = [
     ["haighbphebockaggfkllmmdpmgdhebme", "assets/css/common.css", "AliPrice Price Tracker"],
     ["lbnnfjfjdijcnaakaebgcoemmlicjbnl", "quickmenu.html", "Tile Tabs WE"],
     ["jpefmbpcbebpjpmelobfakahfdcgcmkl", "assets/static/128.png", "Dislikes for Youtube"],
-    ["dnebklifojaaecmheejjopgjdljebpeo", "fonts/Lato-Regular.woff2", "Everhour — Time Tracking, Budgets, Expenses"],
+    ["dnebklifojaaecmheejjopgjdljebpeo", "fonts/Lato-Regular.woff2", "Everhour — Time Tracking, Budgets, Expenses"], // stile:consentito
     ["pdbbapplhjopafpgidbgceccbbmehcjj", "js/lib/jquery-3.4.1.min.js", "SEI Pro"],
     ["ocdmogmohccmeicdhlhhgepeaijenapj", "app.html", "Adobe Experience Cloud Debugger"],
     ["ilpimgbmpmhfhdaaeepjokoigelkfbee", "img/bsr_sample.png", "DS Amazon Quick View Extended"],
@@ -1182,7 +1182,7 @@ window.EstensioniNote = [
     ["flogffpkikminpapehgocpbckfckmohi", "app-icon.png", "Vex 4 Unblocked Game"],
     ["cankiolpkhdphjffldgoiaomhmgdpiig", "css/lib.css", "WA Sender Free Bulk Messaging"],
     ["jeddnlnhbnhbpojpebckcgongkiijobk", "main.js", "Impero Cloud Extension"],
-    ["oghkljobbhapacbahlneolfclkniiami", "index.html", "ProductivityTab — Custom Homepage Dashboard"],
+    ["oghkljobbhapacbahlneolfclkniiami", "index.html", "ProductivityTab — Custom Homepage Dashboard"], // stile:consentito
     ["fedimamkpgiemhacbdhkkaihgofncola", "img/iconMenuItem24.png", "WAToolkit"],
     ["adanomdlalebngcphfbknoglbcdcbchb", "chunks/utils-a5b09840.js", "AliExpress Coupon Finder"],
     ["ghahcnmfjfckcedfajbhekgknjdplfcl", "icons/32x32.png", "LoungeDestroyer"],
