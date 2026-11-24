@@ -76,7 +76,8 @@
 .permission-result dd { margin: 0 0 4px 20px; }
 /* testo dagli appunti: va a capo, e uno molto lungo scorre invece di allungare la pagina */
 .permission-result .clipboard-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 200px; overflow-y: auto; }
-#camera-snapshot-canvas { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
+#camera-snapshot-canvas, .anteprima-schermo { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
+.anteprima-schermo { display: block; margin-bottom: 8px; }
 #advanced-permissions-section > .avviso { margin-top: 12px; }
 
 .demo-data { margin-top: 18px; }

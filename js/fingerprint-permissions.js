@@ -204,7 +204,7 @@
                     <dt>${esc(t('permessi.geo.coordinate'))}</dt>
                     <dd>${esc(FingerprintUtils.formatCoordinates(latitude, longitude))}</dd>
                     <dt>${esc(t('permessi.geo.accuratezza'))}</dt>
-                    <dd>${esc(t('permessi.geo.metri', { n: accuracy.toFixed(0) }))} ${esc(PermissionsManager.getAccuracyQuality(accuracy))}</dd>
+                    <dd>${esc(t('permessi.geo.metri', { n: accuracy.toFixed(0) }))}: ${esc(PermissionsManager.getAccuracyQuality(accuracy))}</dd>
                     <dt>${esc(t('permessi.geo.altitudine'))}</dt>
                     <dd>${altitude ? `${altitude.toFixed(1)} m` : esc(t('valore.nonDisponibile'))}</dd>
                     <dt>${esc(t('permessi.geo.ora'))}</dt>
@@ -278,16 +278,16 @@
         },
 
         /**
-         * Helper: Restituisce indicatore qualità accuratezza
-         * 
+         * Qualita' della posizione e da dove viene probabilmente, a parole
+         *
          * @param {number} accuracy - Accuratezza in metri
-         * @returns {string} Emoji indicatore qualità
+         * @returns {string} Es. "ottima, dal GPS"
          */
         getAccuracyQuality: function(accuracy) {
-            if (accuracy < 50) return `🟢 (${t('permessi.geo.qualitaGps')})`;
-            if (accuracy < 500) return `🟡 (${t('permessi.geo.qualitaWifi')})`;
-            if (accuracy < 5000) return `🟠 (${t('permessi.geo.qualitaCelle')})`;
-            return `🔴 (${t('permessi.geo.qualitaIp')})`;
+            if (accuracy < 50) return t('permessi.geo.qualitaGps');
+            if (accuracy < 500) return t('permessi.geo.qualitaWifi');
+            if (accuracy < 5000) return t('permessi.geo.qualitaCelle');
+            return t('permessi.geo.qualitaIp');
         },
 
         /**
@@ -613,13 +613,12 @@
             const video = document.createElement('video');
             video.srcObject = stream;
             video.autoplay = true;
-            video.style.maxWidth = '100%';
-            video.style.border = '2px solid var(--color-error)';
+            video.className = 'anteprima-schermo';
 
             const stopButton = document.createElement('button');
             stopButton.textContent = t('permessi.schermo.interrompi');
             stopButton.type = 'button';
-            stopButton.style.marginTop = '10px';
+            stopButton.className = 'btn';
 
             const fine = () => {
                 stream.getTracks().forEach(track => track.stop());

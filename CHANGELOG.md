@@ -4,14 +4,11 @@
 - Aspetto nuovo, lo stesso degli altri siti di AlbGri: caratteri Alegreya e Atkinson Hyperlegible Next serviti dal sito stesso, colori tinti di lavanda, risultati in schede affiancate a tutta larghezza
 - Pulsante del tema accanto a quello della lingua, per avere la pagina chiara o scura; finché non si sceglie segue il sistema. La scelta resta nel browser come la lingua, e il pulsante che cancella i dati della demo la lascia. Fra le preferenze la demo continua a mostrare il tema del sistema, qualunque tema si scelga per la pagina
 - Mappa a sinistra con i cinque gruppi di risultati e la pagina "E se qualcuno salvasse questi dati?"; sul telefono si apre dal pulsante "Mappa" in basso
-- Sul telefono data e ora di Roma scendono in fondo alla pagina
-- L'orologio in alto mostra data e ora di Roma, senza scelta del fuso. Le ore della pagina (visite,
-  posizione) hanno lo stesso formato, con "(Roma)" dopo l'ora
-- Sul telefono l'orologio in alto non mostra il giorno della settimana, così sta su una riga. In inglese le date sono nel formato britannico ("Wednesday, 30 September 2026, 14:08 (Rome)")
+- L'orologio in alto mostra data e ora di Roma, senza scelta del fuso. Le ore della pagina (visite, posizione) hanno lo stesso formato, con "(Roma)" dopo l'ora
+- Sul telefono l'orologio sta nel piede della pagina, senza il giorno della settimana. In inglese le date sono nel formato britannico ("Wednesday, 30 September 2026, 14:08 (Rome)")
 
 ## 2026-11-14
-- Nuovo indirizzo: digital-fingerprint.albgri.com. I dati che la pagina aveva salvato nel browser
-  all'indirizzo vecchio (cronologia delle visite, lingua, fuso) non passano
+- Nuovo indirizzo: digital-fingerprint.albgri.com. I dati che la pagina aveva salvato nel browser all'indirizzo vecchio (cronologia delle visite, lingua, fuso) non passano
 
 ## 2026-11-08
 - Pagina nuova "E se qualcuno salvasse questi dati?" (digital-fingerprint.albgri.com/server/): cosa ne farebbe
