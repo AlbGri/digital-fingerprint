@@ -539,7 +539,7 @@
                     ${riga('accelY', 'motion-accel-y')}
                     ${riga('accelZ', 'motion-accel-z')}
                 </dl>
-                <button type="button" id="stop-motion-tracking">${esc(t('permessi.sensori.interrompi'))}</button>
+                <button type="button" class="btn" id="stop-motion-tracking">${esc(t('permessi.sensori.interrompi'))}</button>
             `;
 
             const orientationHandler = (event) => {

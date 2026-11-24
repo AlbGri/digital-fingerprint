@@ -13,7 +13,7 @@
     'use strict';
 
     const STORAGE_KEY = 'digital-fingerprint/tema';
-    const COLORE_BARRA = { chiaro: '#f4f6fa', scuro: '#232025' };
+    const COLORE_BARRA = { chiaro: '#f4f6fa', scuro: '#232025' }; // stile:consentito: meta theme-color, uguale a --surface; il foglio qui non e' ancora caricato
     const radice = document.documentElement;
     const sistemaScuro = window.matchMedia('(prefers-color-scheme: dark)');
 

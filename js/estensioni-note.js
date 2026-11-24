@@ -141,7 +141,7 @@ window.EstensioniNote = [
     ["phidhnmbkbkbkbknhldmpmnacgicphkf", "static/images/logo.svg", "MyBib: Free Citation Generator"],
     ["kenfcfndncbbggmafjjeihkdclggbojn", "Player.nmf", "Player para ver Movistar+"],
     ["gbmdgpbipfallnflgajpaliibnhdgobh", "assets/viewer.css", "JSON Viewer"],
-    ["jjfblogammkiefalfpafidabbnamoknm", "built/inject.css", "RetailMeNot Deal Finder™️"],
+    ["jjfblogammkiefalfpafidabbnamoknm", "built/inject.css", "RetailMeNot Deal Finder™️"], // stile:consentito: nome vero dell'estensione
     ["lmhkpmbekcpmknklioeibfkpmmfibljd", "page.bundle.js", "Redux DevTools"],
     ["dakebdbeofhmlnmjlmhjdmmjmfohiicn", "grid.user.js", "Google Meet Tweak (Emojis, Text, Cam Effects)"],
     ["fnjhmkhhmkbjkkabndcnnogagogbneec", "in-page.js", "Ronin Wallet"],
@@ -330,7 +330,7 @@ window.EstensioniNote = [
     ["iicpikopjmmincpjkckdngpkmlcchold", "dis.png", "Repeat button"],
     ["flmihfcdcgigpfcfjpdcniidbfnffdcf", "images/desktop-active.svg", "Screence screen recorder"],
     ["kiodaajmphnkcajieajajinghpejdjai", "assets/images/icon128.png", "Popup Blocker Pro"],
-    ["bnomihfieiccainjcjblhegjgglakjdd", "ui/options.html", "Improve YouTube! (Video & YouTube Tools)🎧"],
+    ["bnomihfieiccainjcjblhegjgglakjdd", "ui/options.html", "Improve YouTube! (Video & YouTube Tools)🎧"], // stile:consentito
     ["fbcgkphadgmbalmlklhbdagcicajenei", "jquery-3.1.0.min.js", "Emoji Keyboard - Emojis For Chrome"],
     ["djnhkfljnimcpelfndpcjcgngmefaobl", "sound/start.wav", "Talk and Comment - Voice notes anywhere"],
     ["lfpjkncokllnfokkgpkobnkbkmelfefj", "pages/test_area.html", "Linkclump"],
@@ -356,7 +356,7 @@ window.EstensioniNote = [
     ["njcpapmgiimlmlelomamnobmdmhpbfhd", "assets/icon/content/icon.svg", "Sound Booster - Increase your volume"],
     ["jgllchbkhjeiaombmpkapalbmpolmelp", "js/FriendDestroyerFramework.js", "Roblox Friend Removal Button"],
     ["dkaagdgjmgdmbnecmcefdhjekcoceebi", "settings.html", "PerfectPixel by WellDoneCode (pixel perfect)"],
-    ["eenjdnjldapjajjofmldgmkjaienebbj", "message-dialog.html", "Copyfish 🐟 Free OCR Software"],
+    ["eenjdnjldapjajjofmldgmkjaienebbj", "message-dialog.html", "Copyfish 🐟 Free OCR Software"], // stile:consentito
     ["pfjibkklgpfcfdlhijfglamdnkjnpdeg", "settings.html", "AliRadar - помощник в покупках"],
     ["pflmllfnnabikmfkkaddkoolinlfninn", "keyboard.html", "Virtual Keyboard"],
     ["fdedigfpeejoaoicpppjcpicekleaedb", "assets/img/bg-options.png", "FastSave for Instagram"],
