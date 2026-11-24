@@ -72,7 +72,9 @@ del repo:
 
     python -m http.server 8000 --bind 127.0.0.1
 
-poi http://127.0.0.1:8000/
+poi http://localhost:8000/. Con http://127.0.0.1:8000/ la riga del luogo dice quasi sempre
+"limite del servizio", perche' ipwho.is conta le richieste per indirizzo del sito, e quello e'
+lo stesso per chiunque provi la pagina in locale.
 
 ## Licenza
 
