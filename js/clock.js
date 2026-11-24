@@ -14,6 +14,27 @@
     const FUSO = 'Europe/Rome';
 
     /**
+     * Data e ora di Roma a pezzi, con il giorno della settimana a parte: sul telefono l'orologio
+     * in testata lo nasconde. Inglese britannico, giorno prima del mese
+     * @param {Date} istante - Istante da mostrare
+     * @returns {{giorno: string, data: string, ora: string}} Es. "martedì ", "24 novembre 2026", "14:05"
+     */
+    function parti(istante) {
+        const lingua = window.I18n.getLanguage() === 'en' ? 'en-GB' : 'it';
+        const pezzi = new Intl.DateTimeFormat(lingua, {
+            timeZone: FUSO, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        }).formatToParts(istante);
+        // Il giorno della settimana finisce dove comincia il numero del giorno, separatore compreso
+        const inizioData = pezzi.findIndex(pezzo => pezzo.type === 'day');
+        const unisci = lista => lista.map(pezzo => pezzo.value).join('');
+        // 24 ore anche in inglese: e' l'ora di Roma
+        const ora = istante.toLocaleTimeString(lingua, {
+            timeZone: FUSO, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+        });
+        return { giorno: unisci(pezzi.slice(0, inizioData)), data: unisci(pezzi.slice(inizioData)), ora };
+    }
+
+    /**
      * Data, ore e minuti nell'ora di Roma, nella lingua scelta
      * @param {string|number|Date} timestamp - Istante da mostrare
      * @param {boolean} [conRoma=true] - Aggiunge "(Roma)" dopo l'ora
@@ -25,23 +46,19 @@
         if (isNaN(istante)) {
             return timestamp;
         }
-        const lingua = window.I18n.getLanguage();
-        const data = istante.toLocaleDateString(lingua, {
-            timeZone: FUSO, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-        });
-        // 24 ore anche in inglese: e' l'ora di Roma
-        const ora = istante.toLocaleTimeString(lingua, {
-            timeZone: FUSO, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
-        });
-        const testo = `${data}, ${ora}`;
+        const { giorno, data, ora } = parti(istante);
+        const testo = `${giorno}${data}, ${ora}`;
         return conRoma ? `${testo} (${window.I18n.t('ora.roma')})` : testo;
     }
 
     const orologio = document.getElementById('clock');
 
     function aggiorna() {
-        const testo = dataOra(Date.now());
-        orologio.textContent = testo.charAt(0).toUpperCase() + testo.slice(1);
+        const { giorno, data, ora } = parti(new Date());
+        const giornoVisibile = document.createElement('span');
+        giornoVisibile.className = 'clock-giorno';
+        giornoVisibile.textContent = giorno.charAt(0).toUpperCase() + giorno.slice(1);
+        orologio.replaceChildren(giornoVisibile, `${data}, ${ora} (${window.I18n.t('ora.roma')})`);
     }
 
     // Allo scattare di ogni minuto: Roma ha uno scarto di ore intere da UTC

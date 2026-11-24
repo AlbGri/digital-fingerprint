@@ -506,6 +506,11 @@
     h1 {
         font-size: 1.75em;
     }
+
+    /* Con la data piu' lunga dell'anno l'orologio andrebbe su due righe */
+    .clock-giorno {
+        display: none;
+    }
 }
 
 /* Preferenze utente per movimento ridotto WCAG 2.1 */
